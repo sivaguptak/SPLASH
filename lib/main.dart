@@ -1,8 +1,13 @@
+// ===============================================================
+// FILE: lib/main.dart
+// PURPOSE: App entry + MaterialApp routes. No business logic.
+// ===============================================================
+
 import 'package:flutter/material.dart';
 import 'core/theme.dart';
 import 'app.dart';
 
-// screens
+// BEGIN screens (existing)
 import 'features/auth/screens/splash_gate.dart';
 import 'features/auth/screens/role_select.dart';
 import 'features/dashboard_user/screens/dashboard_user.dart';
@@ -13,6 +18,13 @@ import 'features/offers/screens/my_offers.dart';
 import 'features/distribution/screens/distribute.dart';
 import 'features/redeem/screens/redeem.dart';
 import 'features/wallet/screens/wallet.dart';
+// END screens (existing)
+
+// BEGIN screens (new)
+import 'features/auth/screens/auth_choice.dart';
+import 'features/auth/screens/login_phone.dart';
+import 'features/auth/screens/otp_verify.dart';
+// END screens (new)
 
 void main() => runApp(const LocsyApp());
 
@@ -26,10 +38,12 @@ class LocsyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: LocsyTheme.light,
 
-      // ✅ Use proper named routes (no fallback to Splash)
+      // BEGIN routes
       initialRoute: AppRoutes.splash,
       routes: {
         AppRoutes.splash:     (_) => const SplashGate(),
+        AppRoutes.authChoice: (_) => const AuthChoiceScreen(),  // NEW landing after splash
+        AppRoutes.phoneOtp:   (_) => const LoginPhoneScreen(),  // NEW phone entry + OTP button
         AppRoutes.roleSelect: (_) => const RoleSelectScreen(),
         AppRoutes.userDash:   (_) => const DashboardUserScreen(),
         AppRoutes.shopDash:   (_) => const DashboardShopScreen(),
@@ -39,11 +53,11 @@ class LocsyApp extends StatelessWidget {
         AppRoutes.distribute: (_) => const DistributeScreen(),
         AppRoutes.redeem:     (_) => const RedeemScreen(),
         AppRoutes.wallet:     (_) => const WalletScreen(),
+        // we still wire OTP verify as a named screen, used by LoginPhoneScreen
+        '/auth/otp-verify':   (_) => const OtpVerifyScreen(),   // internal step
       },
-
-      // (optional) unknown route → splash
-      onUnknownRoute: (_) =>
-          MaterialPageRoute(builder: (_) => const SplashGate()),
+      onUnknownRoute: (_) => MaterialPageRoute(builder: (_) => const SplashGate()),
+      // END routes
     );
   }
 }

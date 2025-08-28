@@ -1,9 +1,8 @@
 // ===============================================================
 // FILE: lib/features/auth/screens/splash_gate.dart
-// PURPOSE: LOCSY splash with intro animation + progress ring.
-// CHANGE:  Keep animated circle + arrow; REMOVE double-tap;
-//          ADD single tap to continue (while long-press still works).
-// NOTE:    Asset path kept EXACT: 'assets/images/locsy_avatar.png'
+// PURPOSE: LOCSY splash with intro + ring. SINGLE TAP to continue.
+// CHANGE NOW: Navigate to AppRoutes.authChoice (Register/Login page).
+// ASSETS: uses 'assets/images/locsy_avatar.png' as you had.
 // ===============================================================
 
 import 'package:flutter/material.dart';
@@ -21,18 +20,18 @@ class _SplashGateState extends State<SplashGate> with TickerProviderStateMixin {
   late final AnimationController _intro;
   late final Animation<double> _fadeAvatar, _scaleAvatar, _fadeT1, _fadeT2, _fadeT3;
   late final Animation<Offset> _slideT1, _slideT2, _slideT3;
-  // END intro animation (avatar + texts)
+  // END intro animation
 
-  // BEGIN hold-to-enter progress (ring) + CTA state
-  late final AnimationController _hold; // completes → navigate
-  bool _showEnter = false; // show CTA after intro completes
-  // END hold-to-enter progress (ring) + CTA state
+  // BEGIN hold ring (kept for look) + CTA state
+  late final AnimationController _hold;
+  bool _showEnter = false;
+  // END
 
   @override
   void initState() {
     super.initState();
 
-    // BEGIN setup intro animations
+    // BEGIN intro setup
     _intro = AnimationController(vsync: this, duration: const Duration(milliseconds: 1600))
       ..forward();
     _fadeAvatar = CurvedAnimation(parent: _intro, curve: const Interval(0.00, 0.35, curve: Curves.easeOut));
@@ -48,42 +47,35 @@ class _SplashGateState extends State<SplashGate> with TickerProviderStateMixin {
     _slideT3 = Tween<Offset>(begin: const Offset(0, .20), end: Offset.zero)
         .animate(CurvedAnimation(parent: _intro, curve: const Interval(.70, 1.00, curve: Curves.easeOut)));
     _fadeT3  = CurvedAnimation(parent: _intro, curve: const Interval(.70, 1.00));
-
     _intro.addStatusListener((s) {
-      if (s == AnimationStatus.completed && mounted) {
-        setState(() => _showEnter = true);
-      }
+      if (s == AnimationStatus.completed && mounted) setState(() => _showEnter = true);
     });
-    // END setup intro animations
+    // END intro setup
 
-    // BEGIN hold progress controller (kept for ring animation)
+    // BEGIN ring controller (for the animated circle look)
     _hold = AnimationController(vsync: this, duration: const Duration(milliseconds: 900));
+    // If hold completes, we also proceed
     _hold.addStatusListener((s) {
-      if (s == AnimationStatus.completed && mounted) {
-        Navigator.of(context).pushReplacementNamed(AppRoutes.roleSelect);
-      }
+      if (s == AnimationStatus.completed && mounted) _nudgeForward();
     });
-    // END hold progress controller
+    // END ring controller
   }
 
   @override
   void dispose() {
-    // BEGIN dispose controllers
     _intro.dispose();
     _hold.dispose();
-    // END dispose controllers
     super.dispose();
   }
 
-  // BEGIN navigation helper (single tap)
+  // BEGIN navigation: go to Register/Login (authChoice)
   void _nudgeForward() {
-    Navigator.of(context).pushReplacementNamed(AppRoutes.roleSelect);
+    Navigator.of(context).pushReplacementNamed(AppRoutes.authChoice);
   }
-  // END navigation helper (single tap)
+  // END navigation
 
   @override
   Widget build(BuildContext context) {
-    // BEGIN scaffold
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -99,55 +91,38 @@ class _SplashGateState extends State<SplashGate> with TickerProviderStateMixin {
                   child: FadeTransition(
                     opacity: _fadeAvatar,
                     child: Image.asset(
-                      // NOTE: path preserved exactly
-                      'assets/images/locsy_avatar.png',
-                      width: 220,
-                      height: 220,
-                      fit: BoxFit.contain,
+                      'assets/images/locsy_avatar.png', // path kept same
+                      width: 220, height: 220, fit: BoxFit.contain,
                     ),
                   ),
                 ),
                 // END avatar
                 const SizedBox(height: 16),
 
-                // BEGIN title "LOCSY"
+                // BEGIN titles
                 FadeTransition(
                   opacity: _fadeT1,
                   child: SlideTransition(
                     position: _slideT1,
                     child: const Text(
                       'LOCSY',
-                      style: TextStyle(
-                        fontSize: 48,
-                        fontWeight: FontWeight.w900,
-                        color: LocsyColors.orange,
-                        letterSpacing: 1.2,
-                      ),
+                      style: TextStyle(fontSize: 48, fontWeight: FontWeight.w900,
+                          color: LocsyColors.orange, letterSpacing: 1.2),
                     ),
                   ),
                 ),
-                // END title "LOCSY"
                 const SizedBox(height: 6),
-
-                // BEGIN subtitle 1
                 FadeTransition(
                   opacity: _fadeT2,
                   child: SlideTransition(
                     position: _slideT2,
                     child: const Text(
                       'Local Services for you',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: LocsyColors.orange,
-                      ),
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: LocsyColors.orange),
                     ),
                   ),
                 ),
-                // END subtitle 1
                 const SizedBox(height: 10),
-
-                // BEGIN subtitle 2
                 FadeTransition(
                   opacity: _fadeT3,
                   child: SlideTransition(
@@ -155,98 +130,65 @@ class _SplashGateState extends State<SplashGate> with TickerProviderStateMixin {
                     child: const Text(
                       'Mana Services · Mana Area\nMana App',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 18,
-                        height: 1.25,
-                        fontWeight: FontWeight.w800,
-                        color: LocsyColors.navy,
-                      ),
+                      style: TextStyle(fontSize: 18, height: 1.25, fontWeight: FontWeight.w800, color: LocsyColors.navy),
                     ),
                   ),
                 ),
-                // END subtitle 2
+                // END titles
 
                 const SizedBox(height: 32),
 
-                // ---------- CTA AREA (kept ring + arrow, changed interaction) ----------
+                // BEGIN CTA with animated circle (look intact). Single tap + optional hold.
                 if (_showEnter)
                   GestureDetector(
-                    // BEGIN keep long-press ring behavior
-                    onLongPressStart: (_) => _hold.forward(from: 0),
-                    onLongPressEnd: (_) => _hold.reverse(),
-                    // END keep long-press ring behavior
-
-                    // BEGIN change: SINGLE TAP → continue (double-tap removed)
-                    onTap: _nudgeForward,
-                    // END change
-
+                    onTap: _nudgeForward,                     // NEW: single tap to continue
+                    onLongPressStart: (_) => _hold.forward(from: 0), // keep ring feel
+                    onLongPressEnd:   (_) => _hold.reverse(),
                     child: Column(
                       children: [
-                        // BEGIN animated progress ring with center arrow (UNCHANGED)
                         AnimatedBuilder(
                           animation: _hold,
-                          builder: (_, __) {
-                            return Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                SizedBox(
-                                  width: 96,
-                                  height: 96,
-                                  child: CircularProgressIndicator(
-                                    value: _hold.value == 0 ? null : _hold.value,
-                                    strokeWidth: 6,
-                                    color: LocsyColors.orange,
-                                    backgroundColor: LocsyColors.cream,
-                                  ),
+                          builder: (_, __) => Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              SizedBox(
+                                width: 96, height: 96,
+                                child: CircularProgressIndicator(
+                                  value: _hold.value == 0 ? null : _hold.value,
+                                  strokeWidth: 6,
+                                  color: LocsyColors.orange,
+                                  backgroundColor: LocsyColors.cream,
                                 ),
-                                Container(
-                                  width: 72,
-                                  height: 72,
-                                  decoration: BoxDecoration(
-                                    color: LocsyColors.navy,
-                                    borderRadius: BorderRadius.circular(36),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(.08),
-                                        blurRadius: 10,
-                                        offset: const Offset(0, 4),
-                                      )
-                                    ],
-                                  ),
-                                  child: const Icon(
-                                    Icons.arrow_forward_rounded,
-                                    color: Colors.white,
-                                    size: 32,
-                                  ),
+                              ),
+                              Container(
+                                width: 72, height: 72,
+                                decoration: BoxDecoration(
+                                  color: LocsyColors.navy,
+                                  borderRadius: BorderRadius.circular(36),
+                                  boxShadow: [
+                                    BoxShadow(color: Colors.black.withOpacity(.08), blurRadius: 10, offset: Offset(0,4))
+                                  ],
                                 ),
-                              ],
-                            );
-                          },
-                        ),
-                        // END animated progress ring with center arrow (UNCHANGED)
-
-                        const SizedBox(height: 10),
-
-                        // BEGIN hint text (updated copy)
-                        const Text(
-                          'Tap to continue ',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: LocsyColors.slate,
-                            fontWeight: FontWeight.w700,
+                                child: const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 32),
+                              ),
+                            ],
                           ),
                         ),
-                        // END hint text
+                        const SizedBox(height: 10),
+                        const Text(
+                          'Tap to continue · Press & hold to enter',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: LocsyColors.slate, fontWeight: FontWeight.w700),
+                        ),
                       ],
                     ),
                   ),
-                // ---------- END CTA AREA ----------
+                // END CTA
               ],
             ),
           ),
         ),
       ),
     );
-    // END scaffold
   }
 }
