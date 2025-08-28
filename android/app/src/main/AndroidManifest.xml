@@ -1,9 +1,16 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<?xml version="1.0" encoding="utf-8"?>
+<!-- BEGIN main_manifest_full_replace -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.locsy_skeleton">
+
+    <!-- Debug manifest can keep INTERNET; keeping it here is also fine -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:label="@string/app_name"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="true">
 
         <activity
             android:name=".MainActivity"
@@ -25,17 +32,18 @@
             </intent-filter>
         </activity>
 
-        <!-- Keep for Flutter plugin registration -->
+        <!-- Required by Flutter embedding v2 -->
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
     </application>
 
+    <!-- Optional: allow PROCESS_TEXT intents if you use them -->
     <queries>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
     </queries>
-
 </manifest>
+    <!-- END main_manifest_full_replace -->

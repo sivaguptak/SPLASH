@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "815702696590",
+    "project_id": "knlslocsy-ebf67",
+    "storage_bucket": "knlslocsy-ebf67.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:815702696590:android:0652892cc1d3ff7e895fdf",
+        "android_client_info": {
+          "package_name": "com.example.locsy_skeleton"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAEVtiQRsznWSqW9N7Q5vhLYyPwkvFW_qs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

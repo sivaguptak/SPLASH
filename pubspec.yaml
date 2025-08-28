@@ -1,3 +1,4 @@
+# BEGIN pubspec_full_replace
 name: locsy_skeleton
 description: LOCSY coupons app - maintainable Flutter skeleton
 publish_to: "none"
@@ -9,14 +10,27 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  http: ^1.2.0
+
+  # BEGIN firebase_deps
+  # Firebase core + Auth + Google Sign-In
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
+  google_sign_in: ^6.2.1
+  # END firebase_deps
+
+  # HTTP client for backend calls (/users/upsert, etc.)
+  http: ^1.2.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  # (optional) lints for cleaner code
+  # flutter_lints: ^4.0.0
 
 flutter:
   uses-material-design: true
 
   assets:
     - assets/images/
+
+# END pubspec_full_replace
