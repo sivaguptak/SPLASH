@@ -12,7 +12,16 @@
           "package_name": "com.example.locsy_skeleton"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "815702696590-j85lk02jmbgtr20n1hm2ovcpqfjv7hb1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.locsy_skeleton",
+            "certificate_hash": "fb8808e458d442a9903bb7248d551214db8fa529"
+          }
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAEVtiQRsznWSqW9N7Q5vhLYyPwkvFW_qs"

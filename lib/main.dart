@@ -20,13 +20,21 @@ import 'features/redeem/screens/redeem.dart';
 import 'features/wallet/screens/wallet.dart';
 // END screens (existing)
 
+import 'package:firebase_core/firebase_core.dart';
+
 // BEGIN screens (new)
 import 'features/auth/screens/auth_choice.dart';
 import 'features/auth/screens/login_phone.dart';
 import 'features/auth/screens/otp_verify.dart';
 // END screens (new)
 
-void main() => runApp(const LocsyApp());
+// BEGIN firebase_init_in_main
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(); // loads android/app/google-services.json
+  runApp(const LocsyApp());
+}
+// END firebase_init_in_main
 
 class LocsyApp extends StatelessWidget {
   const LocsyApp({super.key});

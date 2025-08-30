@@ -1,14 +1,17 @@
 // ===============================================================
 // FILE: lib/features/auth/screens/auth_choice.dart
 // PURPOSE: Single entry page -> "Continue with Google".
-//          After Google (simulated), we force Phone OTP.
+//          After Google, we force Phone OTP (mandatory).
 //          If the user was already registered, you'd skip to Home (later).
-// NOTE: No Firebase code here; just UI + navigation stubs to keep build clean.
+// NOTE: Now uses real Firebase Google sign-in via FirebaseService.
 // ===============================================================
 
 import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
 import '../../../app.dart';
+// BEGIN add_firebase_service_import
+import '../../../services/firebase_service.dart';
+// END add_firebase_service_import
 
 class AuthChoiceScreen extends StatefulWidget {
   const AuthChoiceScreen({super.key});
@@ -19,20 +22,26 @@ class AuthChoiceScreen extends StatefulWidget {
 class _AuthChoiceScreenState extends State<AuthChoiceScreen> {
   bool _busy = false;
 
-  // BEGIN simulate Google sign-in (no Firebase yet)
+  // BEGIN google_signin_real
   Future<void> _continueWithGoogle() async {
     setState(() => _busy = true);
-    await Future.delayed(const Duration(milliseconds: 700)); // pretend network
-    if (!mounted) return;
+    try {
+      // Real Google sign-in -> Firebase Auth
+      await FirebaseService.instance.signInWithGoogle();
 
-    // TODO: When Firebase is added:
-    //  - signInWithGoogle()
-    //  - call backend /users/me to check exists
-    //  - if exists -> go Home; else -> phone OTP (mandatory)
-    Navigator.pushReplacementNamed(context, AppRoutes.phoneOtp);
-    setState(() => _busy = false);
+      if (!mounted) return;
+      // Flow: After Google, enforce Phone OTP
+      Navigator.pushReplacementNamed(context, AppRoutes.phoneOtp);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Google sign-in failed: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
-  // END simulate
+  // END google_signin_real
 
   @override
   Widget build(BuildContext context) {
@@ -46,11 +55,14 @@ class _AuthChoiceScreenState extends State<AuthChoiceScreen> {
             const Text(
               'Sign in with Google.\nWe will verify your phone next.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: LocsyColors.navy, fontWeight: FontWeight.w800),
+              style: TextStyle(
+                color: LocsyColors.navy,
+                fontWeight: FontWeight.w800,
+              ),
             ),
             const SizedBox(height: 24),
 
-            // BEGIN Google button (UI only for now)
+            // BEGIN Google button
             ElevatedButton.icon(
               onPressed: _busy ? null : _continueWithGoogle,
               icon: const Icon(Icons.account_circle),
@@ -68,7 +80,10 @@ class _AuthChoiceScreenState extends State<AuthChoiceScreen> {
             const Text(
               'Why both? Google secures your account; phone helps us contact you and prevent abuse.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: LocsyColors.slate, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: LocsyColors.slate,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),
