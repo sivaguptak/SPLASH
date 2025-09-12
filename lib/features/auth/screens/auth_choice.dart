@@ -1,17 +1,16 @@
 // ===============================================================
 // FILE: lib/features/auth/screens/auth_choice.dart
 // PURPOSE: Single entry page -> "Continue with Google".
-//          After Google, we force Phone OTP (mandatory).
-//          If the user was already registered, you'd skip to Home (later).
-// NOTE: Now uses real Firebase Google sign-in via FirebaseService.
+//          After successful Google sign-in, force Phone OTP step.
+// NOTES : Shows signed-in email + UID for quick verification.
 // ===============================================================
 
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 import '../../../core/theme.dart';
 import '../../../app.dart';
-// BEGIN add_firebase_service_import
 import '../../../services/firebase_service.dart';
-// END add_firebase_service_import
 
 class AuthChoiceScreen extends StatefulWidget {
   const AuthChoiceScreen({super.key});
@@ -22,15 +21,26 @@ class AuthChoiceScreen extends StatefulWidget {
 class _AuthChoiceScreenState extends State<AuthChoiceScreen> {
   bool _busy = false;
 
-  // BEGIN google_signin_real
   Future<void> _continueWithGoogle() async {
+    if (_busy) return;
     setState(() => _busy = true);
     try {
-      // Real Google sign-in -> Firebase Auth
+      // Real Google sign-in -> Firebase Auth (handled inside service)
       await FirebaseService.instance.signInWithGoogle();
 
       if (!mounted) return;
-      // Flow: After Google, enforce Phone OTP
+
+      // Read the signed-in user and surface info
+      final u = FirebaseAuth.instance.currentUser;
+      final email = u?.email ?? '(no email)';
+      final uid   = u?.uid ?? '(no uid)';
+
+      // Quick visual confirmation
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Signed in as $email\nUID: $uid')),
+      );
+
+      // After Google, enforce Phone OTP step
       Navigator.pushReplacementNamed(context, AppRoutes.phoneOtp);
     } catch (e) {
       if (!mounted) return;
@@ -41,7 +51,6 @@ class _AuthChoiceScreenState extends State<AuthChoiceScreen> {
       if (mounted) setState(() => _busy = false);
     }
   }
-  // END google_signin_real
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +59,7 @@ class _AuthChoiceScreenState extends State<AuthChoiceScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 8),
             const Text(
@@ -62,7 +72,7 @@ class _AuthChoiceScreenState extends State<AuthChoiceScreen> {
             ),
             const SizedBox(height: 24),
 
-            // BEGIN Google button
+            // Google button
             ElevatedButton.icon(
               onPressed: _busy ? null : _continueWithGoogle,
               icon: const Icon(Icons.account_circle),
@@ -71,10 +81,11 @@ class _AuthChoiceScreenState extends State<AuthChoiceScreen> {
                 backgroundColor: LocsyColors.navy,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
-            // END Google button
 
             const SizedBox(height: 12),
             const Text(
