@@ -3,8 +3,8 @@
 // PURPOSE: Central route-name constants + in-app Navigator router.
 // NOTES:
 //  - Keeps your original LocsyRouter with onGenerateRoute + switch.
-//  - Adds Register/Login flow routes: authChoice, phoneOtp, otpVerify.
-//  - Minimal changes elsewhere. Use as a full replacement.
+//  - Integrates new unified Phone OTP flow (PhoneOtpFlow).
+//  - Adds generic '/dashboard' route for post-auth landing.
 // ===============================================================
 
 import 'package:flutter/material.dart';
@@ -22,11 +22,14 @@ import 'features/redeem/screens/redeem.dart';
 import 'features/wallet/screens/wallet.dart';
 // END screen imports (existing)
 
-// BEGIN screen imports (new auth pages)
-import 'features/auth/screens/auth_choice.dart';   // Register/Login (Google first)
-import 'features/auth/screens/login_phone.dart';   // Phone entry -> Send OTP
-import 'features/auth/screens/otp_verify.dart';    // OTP entry -> continue
-// END screen imports (new auth pages)
+// BEGIN screen imports (auth)
+import 'features/auth/screens/auth_choice.dart';        // Google first
+import 'features/auth/screens/phone_otp_flow.dart';     // Unified phone->OTP flow
+// END screen imports (auth)
+
+// BEGIN screen imports (new dashboard stub)
+import 'features/dashboard/screens/dashboard_screen.dart';
+// END screen imports (new dashboard stub)
 
 export 'features/auth/screens/splash_gate.dart';
 
@@ -45,15 +48,17 @@ class AppRoutes {
   static const redeem      = '/redeem';
   static const wallet      = '/wallet';
 
-  // BEGIN new: auth flow
+  // Auth flow
   static const authChoice  = '/auth/choice';      // Google → then phone OTP (mandatory)
-  static const phoneOtp    = '/auth/phone-otp';   // Phone entry + Send OTP
-  static const otpVerify   = '/auth/otp-verify';  // Enter OTP
-// END new
+  static const phoneOtp    = '/auth/phone-otp';   // Unified flow entry (phone + otp)
+  static const otpVerify   = '/auth/otp-verify';  // Legacy path -> redirect to unified flow
+
+  // New generic dashboard landing after auth
+  static const dashboard   = '/dashboard';
 }
 
 // ===============================================================
-// In-app Router (kept same style as your older version)
+// In-app Router (onGenerateRoute switch)
 // ===============================================================
 class LocsyRouter extends StatelessWidget {
   const LocsyRouter({super.key});
@@ -61,21 +66,24 @@ class LocsyRouter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Navigator(
-      // BEGIN route switch
       onGenerateRoute: (settings) {
-        // Decide which page to show for a given route
         Widget page;
 
         switch (settings.name) {
-        // ---------- Auth flow (new) ----------
+        // ---------- Auth flow ----------
           case AppRoutes.authChoice:
             page = const AuthChoiceScreen();
             break;
+
+        // Both entries point to unified PhoneOtpFlow
           case AppRoutes.phoneOtp:
-            page = const LoginPhoneScreen();
-            break;
           case AppRoutes.otpVerify:
-            page = const OtpVerifyScreen();
+            page = const PhoneOtpFlow();
+            break;
+
+        // ---------- New generic dashboard ----------
+          case AppRoutes.dashboard:
+            page = const DashboardScreen();
             break;
 
         // ---------- Existing routes ----------
@@ -113,10 +121,8 @@ class LocsyRouter extends StatelessWidget {
             break;
         }
 
-        // Material transition
         return MaterialPageRoute(builder: (_) => page, settings: settings);
       },
-      // END route switch
     );
   }
 }

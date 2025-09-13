@@ -23,8 +23,7 @@ import 'package:locsy_skeleton/features/wallet/screens/wallet.dart';
 
 // Screens (new)
 import 'package:locsy_skeleton/features/auth/screens/auth_choice.dart';
-import 'package:locsy_skeleton/features/auth/screens/login_phone.dart';
-import 'package:locsy_skeleton/features/auth/screens/otp_verify.dart';
+import 'package:locsy_skeleton/features/auth/screens/phone_otp_flow.dart';
 
 // ---------------------------------------------------------------
 // Firebase init
@@ -36,6 +35,9 @@ Future<void> main() async {
   final o = Firebase.app().options;
   // ignore: avoid_print
   print('🔥 Firebase -> projectId=${o.projectId}, appId=${o.appId}');
+  print('🔥 Firebase -> apiKey=${o.apiKey}');
+  print('🔥 Firebase -> authDomain=${o.authDomain}');
+  print('🔥 Firebase -> storageBucket=${o.storageBucket}');
   runApp(const LocsyApp());
 }
 
@@ -55,10 +57,10 @@ class LocsyApp extends StatelessWidget {
         // Auth flow
         AppRoutes.splash:     (_) => const SplashGate(),
         AppRoutes.authChoice: (_) => const AuthChoiceScreen(),
-        AppRoutes.phoneOtp:   (_) => const LoginPhoneScreen(),
+        AppRoutes.phoneOtp:   (_) => const PhoneOtpFlow(),
 
         // OTP step (reads phone from ModalRoute.arguments inside screen)
-        '/auth/otp-verify':   (_) => const OtpVerifyScreen(),
+        '/auth/otp-verify':   (_) => const PhoneOtpFlow(),
 
         // Role + dashboards
         AppRoutes.roleSelect: (_) => const RoleSelectScreen(),

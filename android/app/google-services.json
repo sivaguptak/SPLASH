@@ -20,6 +20,10 @@
             "package_name": "com.example.locsy_skeleton",
             "certificate_hash": "fb8808e458d442a9903bb7248d551214db8fa529"
           }
+        },
+        {
+          "client_id": "815702696590-sojeamnkuc6usffhcviq9m2e4u3psgkf.apps.googleusercontent.com",
+          "client_type": 3
         }
       ],
       "api_key": [
@@ -29,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "815702696590-sojeamnkuc6usffhcviq9m2e4u3psgkf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
