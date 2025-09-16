@@ -80,6 +80,7 @@ class PhoneAuthService {
       codeSent: (String verificationId, int? forceResendToken) {
         _lastVerificationId = verificationId;
         _resendToken = forceResendToken;
+
         if (!completer.isCompleted) {
           completer.complete(verificationId);
         }

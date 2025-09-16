@@ -15,7 +15,7 @@ import '../../../services/phone_auth_service.dart';
 import '../../../utils/auth_debug.dart';
 
 // BEGIN CONFIG
-const String NAVIGATE_SUCCESS_ROUTE = '/role'; // Navigate to role selection after successful auth
+const String NAVIGATE_SUCCESS_ROUTE = '/home'; // Navigate to home screen after successful auth
 // END CONFIG
 
 class PhoneOtpFlow extends StatelessWidget {

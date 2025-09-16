@@ -52,6 +52,11 @@ class _AuthChoiceScreenState extends State<AuthChoiceScreen> {
     }
   }
 
+  void _skipAuth() {
+    // Skip authentication for testing - go directly to home screen
+    Navigator.pushReplacementNamed(context, AppRoutes.home);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -94,6 +99,20 @@ class _AuthChoiceScreenState extends State<AuthChoiceScreen> {
               style: TextStyle(
                 color: LocsyColors.slate,
                 fontWeight: FontWeight.w600,
+              ),
+            ),
+            
+            const SizedBox(height: 24),
+            
+            // Skip button for testing
+            TextButton(
+              onPressed: _busy ? null : _skipAuth,
+              child: const Text(
+                'Skip for Testing (Development Mode)',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 12,
+                ),
               ),
             ),
           ],

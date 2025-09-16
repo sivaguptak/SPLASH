@@ -24,6 +24,9 @@ import 'package:locsy_skeleton/features/wallet/screens/wallet.dart';
 // Screens (new)
 import 'package:locsy_skeleton/features/auth/screens/auth_choice.dart';
 import 'package:locsy_skeleton/features/auth/screens/phone_otp_flow.dart';
+import 'package:locsy_skeleton/features/home/screens/home_screen.dart';
+import 'package:locsy_skeleton/features/home/screens/all_categories_screen.dart';
+import 'package:locsy_skeleton/features/profile/screens/profile_screen.dart';
 
 // ---------------------------------------------------------------
 // Firebase init
@@ -58,6 +61,9 @@ class LocsyApp extends StatelessWidget {
         AppRoutes.splash:     (_) => const SplashGate(),
         AppRoutes.authChoice: (_) => const AuthChoiceScreen(),
         AppRoutes.phoneOtp:   (_) => const PhoneOtpFlow(),
+        AppRoutes.home:       (_) => const HomeScreen(),
+        AppRoutes.allCategories: (_) => const AllCategoriesScreen(),
+        AppRoutes.profile:    (_) => const ProfileScreen(),
 
         // OTP step (reads phone from ModalRoute.arguments inside screen)
         '/auth/otp-verify':   (_) => const PhoneOtpFlow(),

@@ -4,9 +4,13 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../widgets/lo_cards.dart';
 import '../../../widgets/lo_buttons.dart';
 import '../../../app.dart';
+import '../../../core/theme.dart';
 import '../../../data/models/shop.dart';
 import '../../../data/models/service_product.dart';
 import '../../../data/models/daily_update.dart';
+import 'shop_profile_screen.dart';
+import 'services_products_screen.dart';
+import 'daily_updates_screen.dart';
 
 class DashboardShopScreen extends StatefulWidget {
   const DashboardShopScreen({super.key});
@@ -106,9 +110,10 @@ class _DashboardShopScreenState extends State<DashboardShopScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Shop Dashboard'),
-        backgroundColor: Theme.of(context).primaryColor,
+        backgroundColor: LocsyColors.orange,
         foregroundColor: Colors.white,
-        elevation: 0,
+        elevation: 2,
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -155,7 +160,7 @@ class _DashboardShopScreenState extends State<DashboardShopScreen> {
               children: [
                 CircleAvatar(
                   radius: 30,
-                  backgroundColor: Theme.of(context).primaryColor,
+                  backgroundColor: LocsyColors.orange,
                   child: Text(
                     _shop.name.substring(0, 1).toUpperCase(),
                     style: const TextStyle(
@@ -612,10 +617,18 @@ class _DashboardShopScreenState extends State<DashboardShopScreen> {
 
   // Action methods
   void _editShopProfile() {
-    // TODO: Navigate to shop profile edit screen
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Edit shop profile - Coming soon!')),
-    );
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ShopProfileScreen(shop: _shop),
+      ),
+    ).then((result) {
+      if (result != null) {
+        setState(() {
+          // Update shop data if returned
+        });
+      }
+    });
   }
 
   void _openNavigation() {
@@ -626,30 +639,38 @@ class _DashboardShopScreenState extends State<DashboardShopScreen> {
   }
 
   void _addServiceProduct() {
-    // TODO: Navigate to add service/product screen
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Add service/product - Coming soon!')),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ServicesProductsScreen(),
+      ),
     );
   }
 
   void _editServiceProduct(ServiceProductModel item) {
-    // TODO: Navigate to edit service/product screen
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Edit ${item.name} - Coming soon!')),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ServicesProductsScreen(),
+      ),
     );
   }
 
   void _addDailyUpdate() {
-    // TODO: Navigate to add daily update screen
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Add daily update - Coming soon!')),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const DailyUpdatesScreen(),
+      ),
     );
   }
 
   void _editDailyUpdate(DailyUpdateModel update) {
-    // TODO: Navigate to edit daily update screen
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Edit ${update.title} - Coming soon!')),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const DailyUpdatesScreen(),
+      ),
     );
   }
 
@@ -680,27 +701,19 @@ class _DashboardShopScreenState extends State<DashboardShopScreen> {
   }
 
   void _showAnalytics() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Analytics - Coming soon!')),
-    );
+    Navigator.pushNamed(context, AppRoutes.shopAnalytics);
   }
 
   void _showReviews() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Reviews - Coming soon!')),
-    );
+    Navigator.pushNamed(context, AppRoutes.shopReviews);
   }
 
   void _showInventory() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Inventory - Coming soon!')),
-    );
+    Navigator.pushNamed(context, AppRoutes.shopInventory);
   }
 
   void _showOrders() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Orders - Coming soon!')),
-    );
+    Navigator.pushNamed(context, AppRoutes.shopOrders);
   }
 
   @override

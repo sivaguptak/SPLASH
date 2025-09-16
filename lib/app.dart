@@ -31,6 +31,21 @@ import 'features/auth/screens/phone_otp_flow.dart';     // Unified phone->OTP fl
 import 'features/dashboard/screens/dashboard_screen.dart';
 // END screen imports (new dashboard stub)
 
+// BEGIN screen imports (home)
+import 'features/home/screens/home_screen.dart';
+import 'features/home/screens/all_categories_screen.dart';
+// END screen imports (home)
+
+// BEGIN screen imports (profile)
+import 'features/profile/screens/profile_screen.dart';
+// END screen imports (profile)
+
+// BEGIN screen imports (shop dashboard features)
+import 'features/dashboard_shop/screens/shop_profile_screen.dart';
+import 'features/dashboard_shop/screens/services_products_screen.dart';
+import 'features/dashboard_shop/screens/daily_updates_screen.dart';
+// END screen imports (shop dashboard features)
+
 export 'features/auth/screens/splash_gate.dart';
 
 // ===============================================================
@@ -55,6 +70,20 @@ class AppRoutes {
 
   // New generic dashboard landing after auth
   static const dashboard   = '/dashboard';
+  
+  // Home screen after successful auth
+  static const home        = '/home';
+  static const allCategories = '/all-categories';
+  static const profile     = '/profile';
+  
+  // Shop dashboard specific routes
+  static const shopProfile = '/shop/profile';
+  static const shopServices = '/shop/services';
+  static const shopUpdates = '/shop/updates';
+  static const shopAnalytics = '/shop/analytics';
+  static const shopReviews = '/shop/reviews';
+  static const shopInventory = '/shop/inventory';
+  static const shopOrders = '/shop/orders';
 }
 
 // ===============================================================
@@ -86,6 +115,17 @@ class LocsyRouter extends StatelessWidget {
             page = const DashboardScreen();
             break;
 
+        // ---------- Home screen ----------
+          case AppRoutes.home:
+            page = const HomeScreen();
+            break;
+          case AppRoutes.allCategories:
+            page = const AllCategoriesScreen();
+            break;
+          case AppRoutes.profile:
+            page = const ProfileScreen();
+            break;
+
         // ---------- Existing routes ----------
           case AppRoutes.roleSelect:
             page = const RoleSelectScreen();
@@ -115,6 +155,29 @@ class LocsyRouter extends StatelessWidget {
             page = const WalletScreen();
             break;
 
+        // ---------- Shop dashboard features ----------
+          case AppRoutes.shopProfile:
+            page = const ShopProfileScreen();
+            break;
+          case AppRoutes.shopServices:
+            page = const ServicesProductsScreen();
+            break;
+          case AppRoutes.shopUpdates:
+            page = const DailyUpdatesScreen();
+            break;
+          case AppRoutes.shopAnalytics:
+            page = _buildComingSoonScreen('Analytics');
+            break;
+          case AppRoutes.shopReviews:
+            page = _buildComingSoonScreen('Reviews');
+            break;
+          case AppRoutes.shopInventory:
+            page = _buildComingSoonScreen('Inventory');
+            break;
+          case AppRoutes.shopOrders:
+            page = _buildComingSoonScreen('Orders');
+            break;
+
         // ---------- Default (Splash) ----------
           default:
             page = const SplashGate();
@@ -123,6 +186,45 @@ class LocsyRouter extends StatelessWidget {
 
         return MaterialPageRoute(builder: (_) => page, settings: settings);
       },
+    );
+  }
+
+  static Widget _buildComingSoonScreen(String feature) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(feature),
+        backgroundColor: const Color(0xFFFF7A00),
+        foregroundColor: Colors.white,
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.construction,
+              size: 80,
+              color: Colors.grey[400],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              '$feature Coming Soon!',
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF2C3E50),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'This feature is under development',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey[600],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
