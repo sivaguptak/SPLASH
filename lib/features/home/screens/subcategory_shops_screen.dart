@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
 import '../../../widgets/bottom_navigation_widget.dart';
+import '../../../widgets/back_button_handler.dart';
 import '../../../app.dart';
 
 class SubcategoryShopsScreen extends StatefulWidget {
@@ -177,7 +178,9 @@ class _SubcategoryShopsScreenState extends State<SubcategoryShopsScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return BackButtonHandler(
+      behavior: BackButtonBehavior.navigate, // Subcategory shops should navigate back
+      child: Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: _buildAppBar(),
       body: Column(
@@ -197,6 +200,7 @@ class _SubcategoryShopsScreenState extends State<SubcategoryShopsScreen>
       bottomNavigationBar: BottomNavigationWidget(
         selectedIndex: 1, // Explore tab
         onTap: _onBottomNavTap,
+      ),
       ),
     );
   }

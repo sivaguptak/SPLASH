@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../data/models/service_provider.dart';
+import '../../../widgets/back_button_handler.dart';
 import 'service_provider_detail_screen.dart';
 
 class SearchResultsScreen extends StatefulWidget {
@@ -22,10 +23,13 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return BackButtonHandler(
+      behavior: BackButtonBehavior.navigate, // Search results should navigate back
+      child: Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: _buildAppBar(),
       body: _searchResults.isEmpty ? _buildNoResults() : _buildResultsList(),
+      ),
     );
   }
 

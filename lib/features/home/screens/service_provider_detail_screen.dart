@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../data/models/service_provider.dart';
+import '../../../widgets/back_button_handler.dart';
 
 class ServiceProviderDetailScreen extends StatelessWidget {
   final ServiceProvider provider;
@@ -9,7 +10,9 @@ class ServiceProviderDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return BackButtonHandler(
+      behavior: BackButtonBehavior.navigate, // Service detail should navigate back
+      child: Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: _buildAppBar(context),
       body: SingleChildScrollView(
@@ -22,6 +25,7 @@ class ServiceProviderDetailScreen extends StatelessWidget {
             _buildReviews(),
           ],
         ),
+      ),
       ),
     );
   }

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import '../../../data/models/category.dart';
 import '../../../data/services/category_service.dart';
 import '../../../data/models/service_provider.dart';
 import '../../../widgets/bottom_navigation_widget.dart';
+import '../../../widgets/back_button_handler.dart';
 import '../../../app.dart';
 import 'search_results_screen.dart';
 import 'service_provider_detail_screen.dart';
@@ -20,64 +22,125 @@ class _AllCategoriesScreenState extends State<AllCategoriesScreen> {
   final TextEditingController _searchController = TextEditingController();
   late List<CategoryModel> _allCategories;
   late List<CategoryModel> _filteredCategories;
+  
+  // Search related variables
+  Timer? _searchTimer;
+  List<dynamic> _searchResults = [];
+  bool _isSearching = false;
+  bool _showSearchResults = false;
 
   @override
   void initState() {
     super.initState();
     _allCategories = _categoryService.getAllCategories();
     _filteredCategories = _allCategories;
-    _searchController.addListener(_filterCategories);
+    _searchController.addListener(_onSearchChanged);
   }
 
   @override
   void dispose() {
+    _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
+    _searchTimer?.cancel();
     super.dispose();
   }
 
-  void _filterCategories() {
-    final query = _searchController.text.toLowerCase();
-    setState(() {
-      if (query.isEmpty) {
+  void _onSearchChanged() {
+    _searchTimer?.cancel();
+    _searchTimer = Timer(const Duration(milliseconds: 500), () {
+      _performSearch(_searchController.text);
+    });
+  }
+
+  void _performSearch(String query) {
+    final trimmedQuery = query.toLowerCase().trim();
+    
+    if (trimmedQuery.isEmpty) {
+      setState(() {
+        _showSearchResults = false;
+        _searchResults.clear();
+        _isSearching = false;
         _filteredCategories = _allCategories;
-      } else {
-        // First check if there are specific service providers matching the query
-        final matchingProviders = ServiceProviderService.searchProviders(query);
-        
-        if (matchingProviders.isNotEmpty) {
-          // If we have specific providers, navigate to search results
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => SearchResultsScreen(searchQuery: query),
-            ),
-          );
-          return;
-        }
-        
-        // Otherwise, filter categories by subcategory names
-        _filteredCategories = _allCategories.where((category) {
-          return category.subcategories.any((sub) => 
-              sub.name.toLowerCase().contains(query));
-        }).toList();
-      }
+      });
+      return;
+    }
+
+    setState(() {
+      _isSearching = true;
+      _showSearchResults = true;
+    });
+
+    // Perform comprehensive search
+    final allResults = <dynamic>[];
+    
+    // Search service providers
+    final providers = ServiceProviderService.searchProviders(trimmedQuery);
+    allResults.addAll(providers.map((p) => {
+      'type': 'provider',
+      'title': p.name,
+      'subtitle': p.subcategory,
+      'data': p,
+      'icon': Icons.business,
+      'color': _getCategoryColor(p.subcategory),
+    }));
+
+    // Search categories
+    final matchingCategories = _allCategories.where((category) {
+      return category.name.toLowerCase().contains(trimmedQuery) ||
+             category.subcategories.any((sub) => 
+                 sub.name.toLowerCase().contains(trimmedQuery));
+    }).toList();
+    
+    allResults.addAll(matchingCategories.map((c) => {
+      'type': 'category',
+      'title': c.name,
+      'subtitle': '${c.subcategories.length} subcategories',
+      'data': c,
+      'icon': c.icon,
+      'color': c.color,
+    }));
+
+    // Search subcategories
+    for (final category in _allCategories) {
+      final matchingSubs = category.subcategories.where((sub) => 
+          sub.name.toLowerCase().contains(trimmedQuery)).toList();
+      
+      allResults.addAll(matchingSubs.map((sub) => {
+        'type': 'subcategory',
+        'title': sub.name,
+        'subtitle': 'Under ${category.name}',
+        'data': sub,
+        'icon': sub.icon,
+        'color': sub.color,
+      }));
+    }
+
+    setState(() {
+      _searchResults = allResults;
+      _isSearching = false;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return BackButtonHandler(
+      behavior: BackButtonBehavior.navigate, // Categories screen should navigate back
+      child: Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: _buildAppBar(),
       body: Column(
         children: [
           _buildSearchBar(),
-          _buildCategoriesList(),
+          Expanded(
+            child: _showSearchResults ? _buildSearchResults() : _buildCategoriesList(),
+          ),
         ],
       ),
       bottomNavigationBar: BottomNavigationWidget(
         selectedIndex: 1, // Explore tab
         onTap: _onBottomNavTap,
+        onVoiceSearchResult: _handleVoiceSearchResult,
+      ),
       ),
     );
   }
@@ -125,12 +188,25 @@ class _AllCategoriesScreenState extends State<AllCategoriesScreen> {
         ),
         child: TextField(
           controller: _searchController,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             hintText: 'Search categories...',
-            hintStyle: TextStyle(color: Colors.grey),
-            prefixIcon: Icon(Icons.search, color: Colors.grey),
+            hintStyle: const TextStyle(color: Colors.grey),
+            prefixIcon: const Icon(Icons.search, color: Colors.grey),
+            suffixIcon: _searchController.text.isNotEmpty
+                ? IconButton(
+                    onPressed: () {
+                      _searchController.clear();
+                      setState(() {
+                        _showSearchResults = false;
+                        _searchResults.clear();
+                        _filteredCategories = _allCategories;
+                      });
+                    },
+                    icon: const Icon(Icons.clear, color: Color(0xFFFF7A00)),
+                  )
+                : null,
             border: InputBorder.none,
-            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
         ),
       ),
@@ -138,16 +214,207 @@ class _AllCategoriesScreenState extends State<AllCategoriesScreen> {
   }
 
   Widget _buildCategoriesList() {
-    return Expanded(
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: _filteredCategories.length,
-        itemBuilder: (context, index) {
-          final category = _filteredCategories[index];
-          return _buildCategoryCard(category);
-        },
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _filteredCategories.length,
+      itemBuilder: (context, index) {
+        final category = _filteredCategories[index];
+        return _buildCategoryCard(category);
+      },
+    );
+  }
+
+  Widget _buildSearchResults() {
+    if (_isSearching) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF7A00)),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Searching...',
+              style: TextStyle(
+                color: Color(0xFF2C3E50),
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_searchResults.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.search_off,
+              size: 80,
+              color: Colors.grey[400],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No results found',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Try searching with different keywords',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[500],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        // Results count
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          color: Colors.white,
+          child: Text(
+            '${_searchResults.length} results found for "${_searchController.text}"',
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF2C3E50),
+            ),
+          ),
+        ),
+        
+        // Results list
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: _searchResults.length,
+            itemBuilder: (context, index) {
+              final result = _searchResults[index];
+              return _buildSearchResultCard(result);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSearchResultCard(Map<String, dynamic> result) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListTile(
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: result['color'].withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            result['icon'],
+            color: result['color'],
+            size: 20,
+          ),
+        ),
+        title: Text(
+          result['title'],
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF2C3E50),
+          ),
+        ),
+        subtitle: Text(
+          result['subtitle'],
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey[600],
+          ),
+        ),
+        trailing: Icon(
+          Icons.arrow_forward_ios,
+          color: Colors.grey[400],
+          size: 16,
+        ),
+        onTap: () => _handleSearchResultTap(result),
       ),
     );
+  }
+
+  void _handleSearchResultTap(Map<String, dynamic> result) {
+    switch (result['type']) {
+      case 'provider':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ServiceProviderDetailScreen(provider: result['data']),
+          ),
+        );
+        break;
+      case 'category':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CategoryDetailsScreen(category: result['data']),
+          ),
+        );
+        break;
+      case 'subcategory':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SubcategoryShopsScreen(
+              subcategoryName: result['data'].name,
+              categoryColor: result['data'].color,
+              categoryIcon: result['data'].icon,
+            ),
+          ),
+        );
+        break;
+    }
+  }
+
+  Color _getCategoryColor(String subcategory) {
+    switch (subcategory.toLowerCase()) {
+      case 'lawyers':
+        return Colors.indigo;
+      case 'grocery stores':
+        return Colors.green;
+      case 'fruits & vegetables':
+        return Colors.green;
+      case 'electricians':
+        return Colors.orange;
+      case 'plumbers':
+        return Colors.blue;
+      case 'restaurants':
+        return Colors.red;
+      case 'schools':
+        return Colors.purple;
+      default:
+        return const Color(0xFFFF7A00);
+    }
   }
 
   Widget _buildCategoryCard(CategoryModel category) {
@@ -309,15 +576,44 @@ class _AllCategoriesScreenState extends State<AllCategoriesScreen> {
     );
   }
 
+  void _handleVoiceSearchResult(String recognizedText) {
+    // Clear previous search results first
+    setState(() {
+      _showSearchResults = false;
+      _searchResults.clear();
+      _isSearching = false;
+      _filteredCategories = _allCategories;
+    });
+    
+    // Set the new recognized text in the search controller
+    _searchController.text = recognizedText;
+    
+    // Trigger search with the voice input
+    _performSearch(recognizedText);
+    
+    // Show feedback to user
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Voice search: "$recognizedText"'),
+        backgroundColor: const Color(0xFFFF7A00),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   void _onBottomNavTap(int index) {
     switch (index) {
       case 0:
-        Navigator.pushReplacementNamed(context, AppRoutes.home);
+        Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (route) => false);
         break;
       case 1:
         // Already on All Categories screen
         break;
       case 2:
+        // Voice search button - handled by the widget itself
+        break;
+      case 3:
         // Navigate to My Activity screen
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -327,8 +623,8 @@ class _AllCategoriesScreenState extends State<AllCategoriesScreen> {
           ),
         );
         break;
-      case 3:
-        Navigator.pushReplacementNamed(context, AppRoutes.profile);
+      case 4:
+        Navigator.pushNamedAndRemoveUntil(context, AppRoutes.profile, (route) => false);
         break;
     }
   }

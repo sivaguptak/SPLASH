@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../widgets/bottom_navigation_widget.dart';
+import '../../../widgets/back_button_handler.dart';
 import '../../../app.dart';
 import 'user_dashboard_screen.dart';
 import 'shop_admin_dashboard_screen.dart';
@@ -29,7 +30,9 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return BackButtonHandler(
+      behavior: BackButtonBehavior.navigate, // Profile screen should navigate back
+      child: Scaffold(
       backgroundColor: const Color(0xFFF5F5F5), // Light beige background
       appBar: _buildAppBar(),
       body: TabBarView(
@@ -42,6 +45,8 @@ class _ProfileScreenState extends State<ProfileScreen>
       bottomNavigationBar: BottomNavigationWidget(
         selectedIndex: 3, // Profile tab
         onTap: _onBottomNavTap,
+        onVoiceSearchResult: _handleVoiceSearchResult,
+      ),
       ),
     );
   }
@@ -130,15 +135,33 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
+  void _handleVoiceSearchResult(String recognizedText) {
+    // Navigate to home screen and perform voice search
+    Navigator.pushReplacementNamed(context, AppRoutes.home);
+    
+    // Show feedback to user
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Voice search: "$recognizedText" - Redirecting to search...'),
+        backgroundColor: const Color(0xFFFF7A00),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   void _onBottomNavTap(int index) {
     switch (index) {
       case 0:
-        Navigator.pushReplacementNamed(context, AppRoutes.home);
+        Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (route) => false);
         break;
       case 1:
-        Navigator.pushReplacementNamed(context, AppRoutes.allCategories);
+        Navigator.pushNamedAndRemoveUntil(context, AppRoutes.allCategories, (route) => false);
         break;
       case 2:
+        // Voice search button - handled by the widget itself
+        break;
+      case 3:
         // Navigate to My Activity screen
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -148,7 +171,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
         );
         break;
-      case 3:
+      case 4:
         // Already on Profile screen
         break;
     }

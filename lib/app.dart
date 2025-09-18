@@ -34,6 +34,7 @@ import 'features/dashboard/screens/dashboard_screen.dart';
 // BEGIN screen imports (home)
 import 'features/home/screens/home_screen.dart';
 import 'features/home/screens/all_categories_screen.dart';
+import 'features/home/screens/enhanced_search_screen.dart';
 // END screen imports (home)
 
 // BEGIN screen imports (profile)
@@ -45,6 +46,10 @@ import 'features/dashboard_shop/screens/shop_profile_screen.dart';
 import 'features/dashboard_shop/screens/services_products_screen.dart';
 import 'features/dashboard_shop/screens/daily_updates_screen.dart';
 // END screen imports (shop dashboard features)
+
+// BEGIN screen imports (demo)
+import 'features/demo/screens/scratch_demo_screen.dart';
+// END screen imports (demo)
 
 export 'features/auth/screens/splash_gate.dart';
 
@@ -74,6 +79,7 @@ class AppRoutes {
   // Home screen after successful auth
   static const home        = '/home';
   static const allCategories = '/all-categories';
+  static const enhancedSearch = '/enhanced-search';
   static const profile     = '/profile';
   
   // Shop dashboard specific routes
@@ -84,6 +90,9 @@ class AppRoutes {
   static const shopReviews = '/shop/reviews';
   static const shopInventory = '/shop/inventory';
   static const shopOrders = '/shop/orders';
+  
+  // Demo routes
+  static const scratchDemo = '/demo/scratch';
 }
 
 // ===============================================================
@@ -121,6 +130,9 @@ class LocsyRouter extends StatelessWidget {
             break;
           case AppRoutes.allCategories:
             page = const AllCategoriesScreen();
+            break;
+          case AppRoutes.enhancedSearch:
+            page = const EnhancedSearchScreen();
             break;
           case AppRoutes.profile:
             page = const ProfileScreen();
@@ -176,6 +188,11 @@ class LocsyRouter extends StatelessWidget {
             break;
           case AppRoutes.shopOrders:
             page = _buildComingSoonScreen('Orders');
+            break;
+
+        // ---------- Demo routes ----------
+          case AppRoutes.scratchDemo:
+            page = const ScratchDemoScreen();
             break;
 
         // ---------- Default (Splash) ----------

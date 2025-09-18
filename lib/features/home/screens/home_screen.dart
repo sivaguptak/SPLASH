@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:async';
 import '../../../widgets/lo_cards.dart';
 import '../../../widgets/lo_buttons.dart';
 import '../../../widgets/bottom_navigation_widget.dart';
+import '../../../widgets/back_button_handler.dart';
 import '../../../app.dart';
 import '../../../core/theme.dart';
 import '../../../data/services/category_service.dart';
+import '../../../data/services/comprehensive_search_service.dart';
 import '../../../data/models/category.dart';
 import '../../../data/models/service_provider.dart';
 import 'all_categories_screen.dart';
 import 'search_results_screen.dart';
+import 'service_provider_detail_screen.dart';
+import 'subcategory_shops_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,18 +27,35 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
   final CategoryService _categoryService = CategoryService();
   String _selectedLocation = 'Chintalapudi';
-  String _selectedDistance = '1 km';
+  String _selectedDistance = '5 km';
+  double _searchRadius = 5.0;
   int _currentPamphletIndex = 0;
+  
+  // Search related variables
+  Timer? _searchTimer;
+  List<dynamic> _searchResults = [];
+  bool _isSearching = false;
+  bool _showSearchResults = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(_onSearchChanged);
+  }
 
   @override
   void dispose() {
+    _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
+    _searchTimer?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return BackButtonHandler(
+      behavior: BackButtonBehavior.exit, // Home screen should show exit confirmation
+      child: Scaffold(
       body: SafeArea(
         child: Column(
           children: [
@@ -45,28 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
             
             // Main Content
             Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Digital Pamphlets
-                    _buildDigitalPamphlets(),
-                    const SizedBox(height: 20),
-                    
-                    // Shops/Services Categories
-                    _buildShopsServices(),
-                    const SizedBox(height: 20),
-                    
-                    // New in Town
-                    _buildNewInTown(),
-                    const SizedBox(height: 20),
-                    
-                    // Today's Offers
-                    _buildTodaysOffers(),
-                    const SizedBox(height: 20),
-                  ],
-                ),
-              ),
+              child: _showSearchResults ? _buildSearchResults() : _buildMainContent(),
             ),
           ],
         ),
@@ -74,6 +75,8 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: BottomNavigationWidget(
         selectedIndex: 0,
         onTap: _onBottomNavTap,
+        onVoiceSearchResult: _handleVoiceSearchResult,
+      ),
       ),
     );
   }
@@ -97,25 +100,68 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const Spacer(),
-          const Text(
-            'Chintalapudi',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
+          // Location Dropdown
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFFFF7A00)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  spreadRadius: 1,
+                  blurRadius: 3,
+                  offset: const Offset(0, 1),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(width: 4),
-          const Icon(
-            Icons.keyboard_arrow_down,
-            color: Colors.black,
-            size: 20,
-          ),
-          const SizedBox(width: 8),
-          const Icon(
-            Icons.keyboard_arrow_down,
-            color: Colors.black,
-            size: 20,
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: _selectedLocation,
+                isDense: true,
+                icon: Icon(Icons.keyboard_arrow_down, color: const Color(0xFFFF7A00), size: 20),
+                style: const TextStyle(
+                  color: Color(0xFF2C3E50),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+                items: [
+                  'Chintalapudi',
+                  'Pragadavaram',
+                  'Lingapalem', 
+                  'Dharmajigudem',
+                  'Eluru',
+                  'Vijayawada',
+                ].map((String location) {
+                  return DropdownMenuItem<String>(
+                    value: location,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.location_on, size: 16, color: const Color(0xFFFF7A00)),
+                        const SizedBox(width: 6),
+                        Text(
+                          location,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  if (newValue != null && newValue != _selectedLocation) {
+                    setState(() {
+                      _selectedLocation = newValue;
+                    });
+                    _performSearch(); // Update search results when location changes
+                  }
+                },
+              ),
+            ),
           ),
         ],
       ),
@@ -137,38 +183,74 @@ class _HomeScreenState extends State<HomeScreen> {
               const Icon(Icons.location_on, color: Colors.white, size: 16),
               const SizedBox(width: 4),
               const Text(
-                'Within 6 km',
+                'Search Radius: ',
                 style: TextStyle(color: Colors.white, fontSize: 14),
               ),
-              const Spacer(),
-              // Distance Slider
+              // Radius Input with Spinner Buttons
               Container(
-                width: 120,
-                height: 6,
+                height: 32,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(3),
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.white.withOpacity(0.3)),
                 ),
-                child: Stack(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Decrease Button
                     Container(
-                      width: 80,
-                      height: 6,
+                      width: 28,
+                      height: 28,
+                      margin: const EdgeInsets.all(2),
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(3),
+                        color: Colors.white.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: IconButton(
+                        onPressed: _searchRadius > 1.0 ? () {
+                          setState(() {
+                            _searchRadius = (_searchRadius - 1.0).clamp(1.0, 50.0);
+                            _selectedDistance = '${_searchRadius.toInt()} km';
+                          });
+                          _performSearch(); // Update search results when radius changes
+                        } : null,
+                        icon: const Icon(Icons.remove, color: Colors.white, size: 16),
+                        padding: EdgeInsets.zero,
                       ),
                     ),
-                    Positioned(
-                      right: 0,
-                      top: -3,
-                      child: Container(
-                        width: 12,
-                        height: 12,
-                        decoration: const BoxDecoration(
+                    
+                    // Radius Display
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Text(
+                        '${_searchRadius.toInt()} km',
+                        style: const TextStyle(
                           color: Colors.white,
-                          shape: BoxShape.circle,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
                         ),
+                      ),
+                    ),
+                    
+                    // Increase Button
+                    Container(
+                      width: 28,
+                      height: 28,
+                      margin: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: IconButton(
+                        onPressed: _searchRadius < 50.0 ? () {
+                          setState(() {
+                            _searchRadius = (_searchRadius + 1.0).clamp(1.0, 50.0);
+                            _selectedDistance = '${_searchRadius.toInt()} km';
+                          });
+                          _performSearch(); // Update search results when radius changes
+                        } : null,
+                        icon: const Icon(Icons.add, color: Colors.white, size: 16),
+                        padding: EdgeInsets.zero,
                       ),
                     ),
                   ],
@@ -187,15 +269,22 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               child: TextField(
                 controller: _searchController,
-                onSubmitted: (value) => _performSearch(value),
                 decoration: InputDecoration(
                   hintText: 'Search by place or area or need...',
                   hintStyle: const TextStyle(color: Colors.grey),
                   prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                  suffixIcon: IconButton(
-                    onPressed: () => _performSearch(_searchController.text),
-                    icon: const Icon(Icons.search, color: Color(0xFFFF7A00)),
-                  ),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() {
+                              _showSearchResults = false;
+                              _searchResults.clear();
+                            });
+                          },
+                          icon: const Icon(Icons.clear, color: Color(0xFFFF7A00)),
+                        )
+                      : null,
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
@@ -540,31 +629,335 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _performSearch(String query) {
-    final trimmedQuery = query.toLowerCase().trim();
-    if (trimmedQuery.isEmpty) return;
+  void _onSearchChanged() {
+    _searchTimer?.cancel();
+    _searchTimer = Timer(const Duration(milliseconds: 500), () {
+      _performSearch(_searchController.text);
+    });
+  }
 
-    final matchingProviders = ServiceProviderService.searchProviders(trimmedQuery);
+  void _performSearch([String? query]) {
+    final trimmedQuery = query?.toLowerCase().trim() ?? '';
+    
+    if (trimmedQuery.isEmpty) {
+      setState(() {
+        _showSearchResults = false;
+        _searchResults.clear();
+        _isSearching = false;
+      });
+      return;
+    }
 
-    if (matchingProviders.isNotEmpty) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => SearchResultsScreen(searchQuery: trimmedQuery),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('No results found for "$trimmedQuery"'),
-          backgroundColor: const Color(0xFFFF7A00),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
+    setState(() {
+      _isSearching = true;
+      _showSearchResults = true;
+    });
+
+    // Perform comprehensive search across all app content with location and radius filtering
+    final allResults = <dynamic>[];
+    
+    // Search service providers with location and radius filtering using ComprehensiveSearchService
+    final providers = ComprehensiveSearchService.searchProviders(
+      query: trimmedQuery,
+      location: _selectedLocation,
+      radius: _searchRadius,
+    );
+    
+    allResults.addAll(providers.map((p) => {
+      'type': 'provider',
+      'title': p.name,
+      'subtitle': p.subcategory,
+      'data': p,
+      'icon': Icons.business,
+      'color': _getCategoryColor(p.subcategory),
+    }));
+
+    // Search categories
+    final categories = _categoryService.getAllCategories();
+    final matchingCategories = categories.where((category) {
+      return category.name.toLowerCase().contains(trimmedQuery) ||
+             category.subcategories.any((sub) => 
+                 sub.name.toLowerCase().contains(trimmedQuery));
+    }).toList();
+    
+    allResults.addAll(matchingCategories.map((c) => {
+      'type': 'category',
+      'title': c.name,
+      'subtitle': '${c.subcategories.length} subcategories',
+      'data': c,
+      'icon': c.icon,
+      'color': c.color,
+    }));
+
+    // Search subcategories
+    for (final category in categories) {
+      final matchingSubs = category.subcategories.where((sub) => 
+          sub.name.toLowerCase().contains(trimmedQuery)).toList();
+      
+      allResults.addAll(matchingSubs.map((sub) => {
+        'type': 'subcategory',
+        'title': sub.name,
+        'subtitle': 'Under ${category.name}',
+        'data': sub,
+        'icon': sub.icon,
+        'color': sub.color,
+      }));
+    }
+
+    setState(() {
+      _searchResults = allResults;
+      _isSearching = false;
+    });
+  }
+
+  Widget _buildMainContent() {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Digital Pamphlets
+          _buildDigitalPamphlets(),
+          const SizedBox(height: 20),
+          
+          // Shops/Services Categories
+          _buildShopsServices(),
+          const SizedBox(height: 20),
+          
+          // New in Town
+          _buildNewInTown(),
+          const SizedBox(height: 20),
+          
+          // Today's Offers
+          _buildTodaysOffers(),
+          const SizedBox(height: 20),
+          
+          // Scratch Demo Section
+          _buildScratchDemo(),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchResults() {
+    if (_isSearching) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF7A00)),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Searching...',
+              style: TextStyle(
+                color: Color(0xFF2C3E50),
+                fontSize: 16,
+              ),
+            ),
+          ],
         ),
       );
     }
+
+    if (_searchResults.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.search_off,
+              size: 80,
+              color: Colors.grey[400],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No results found',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Try searching with different keywords',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[500],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        // Results count
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          color: Colors.white,
+          child: Text(
+            '${_searchResults.length} results found for "${_searchController.text}"',
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF2C3E50),
+            ),
+          ),
+        ),
+        
+        // Results list
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: _searchResults.length,
+            itemBuilder: (context, index) {
+              final result = _searchResults[index];
+              return _buildSearchResultCard(result);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSearchResultCard(Map<String, dynamic> result) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListTile(
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: result['color'].withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            result['icon'],
+            color: result['color'],
+            size: 20,
+          ),
+        ),
+        title: Text(
+          result['title'],
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF2C3E50),
+          ),
+        ),
+        subtitle: Text(
+          result['subtitle'],
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey[600],
+          ),
+        ),
+        trailing: Icon(
+          Icons.arrow_forward_ios,
+          color: Colors.grey[400],
+          size: 16,
+        ),
+        onTap: () => _handleSearchResultTap(result),
+      ),
+    );
+  }
+
+  void _handleSearchResultTap(Map<String, dynamic> result) {
+    switch (result['type']) {
+      case 'provider':
+        // Navigate to provider detail
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => ServiceProviderDetailScreen(provider: result['data']),
+          ),
+        );
+        break;
+      case 'category':
+        // Navigate to category details
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CategoryDetailsScreen(category: result['data']),
+          ),
+        );
+        break;
+      case 'subcategory':
+        // Navigate to subcategory shops
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SubcategoryShopsScreen(
+              subcategoryName: result['data'].name,
+              categoryColor: result['data'].color,
+              categoryIcon: result['data'].icon,
+          ),
+        ),
+      );
+        break;
+    }
+  }
+
+  Color _getCategoryColor(String subcategory) {
+    switch (subcategory.toLowerCase()) {
+      case 'lawyers':
+        return Colors.indigo;
+      case 'grocery stores':
+        return Colors.green;
+      case 'fruits & vegetables':
+        return Colors.green;
+      case 'electricians':
+        return Colors.orange;
+      case 'plumbers':
+        return Colors.blue;
+      case 'restaurants':
+        return Colors.red;
+      case 'schools':
+        return Colors.purple;
+      default:
+        return const Color(0xFFFF7A00);
+    }
+  }
+
+  void _handleVoiceSearchResult(String recognizedText) {
+    // Clear previous search results first
+    setState(() {
+      _showSearchResults = false;
+      _searchResults.clear();
+      _isSearching = false;
+    });
+    
+    // Set the new recognized text in the search controller
+    _searchController.text = recognizedText;
+    
+    // Trigger search with the voice input
+    _performSearch(recognizedText);
+    
+    // Show feedback to user
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+        content: Text('Voice search: "$recognizedText"'),
+          backgroundColor: const Color(0xFFFF7A00),
+          behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+        ),
+      );
   }
 
   void _onBottomNavTap(int index) {
@@ -573,9 +966,12 @@ class _HomeScreenState extends State<HomeScreen> {
         // Already on Home screen
         break;
       case 1:
-        Navigator.pushReplacementNamed(context, AppRoutes.allCategories);
+        Navigator.pushNamedAndRemoveUntil(context, AppRoutes.allCategories, (route) => false);
         break;
       case 2:
+        // Voice search button - handled by the widget itself
+        break;
+      case 3:
         // Navigate to My Activity screen
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -585,8 +981,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         );
         break;
-      case 3:
-        Navigator.pushReplacementNamed(context, AppRoutes.profile);
+      case 4:
+        Navigator.pushNamedAndRemoveUntil(context, AppRoutes.profile, (route) => false);
         break;
     }
   }
@@ -678,6 +1074,123 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildScratchDemo() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                '🎁 Scratch & Win',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2C3E50),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.scratchDemo),
+                child: const Text(
+                  'Try Demo',
+                  style: TextStyle(
+                    color: Color(0xFFFF7A00),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        
+        // Scratch Demo Card
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [const Color(0xFFFF7A00), const Color(0xFFFF7A00).withOpacity(0.8)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFFF7A00).withOpacity(0.3),
+                spreadRadius: 2,
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: const Icon(
+                  Icons.card_giftcard,
+                  color: Colors.white,
+                  size: 30,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Scratch Coupons',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Touch and scratch to reveal amazing offers!',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    GestureDetector(
+                      onTap: () => Navigator.pushNamed(context, AppRoutes.scratchDemo),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Text(
+                          'Try Scratch Demo',
+                          style: TextStyle(
+                            color: Color(0xFFFF7A00),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

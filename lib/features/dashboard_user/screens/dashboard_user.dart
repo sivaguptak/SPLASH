@@ -17,6 +17,11 @@ class DashboardUserScreen extends StatelessWidget {
           LoPrimaryButton(text: 'Open Wallet', onPressed: () => Navigator.pushNamed(context, AppRoutes.wallet)),
           const SizedBox(height: 8),
           LoPrimaryButton(text: 'Redeem Coupon', onPressed: () => Navigator.pushNamed(context, AppRoutes.redeem)),
+          const SizedBox(height: 8),
+          LoPrimaryButton(
+            text: '🎁 Scratch Demo', 
+            onPressed: () => Navigator.pushNamed(context, AppRoutes.scratchDemo),
+          ),
         ],
       ),
     );

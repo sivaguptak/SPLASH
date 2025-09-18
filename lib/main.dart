@@ -5,6 +5,7 @@
 
 // Core
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:locsy_skeleton/core/theme.dart';
 import 'package:locsy_skeleton/app.dart';
@@ -27,12 +28,20 @@ import 'package:locsy_skeleton/features/auth/screens/phone_otp_flow.dart';
 import 'package:locsy_skeleton/features/home/screens/home_screen.dart';
 import 'package:locsy_skeleton/features/home/screens/all_categories_screen.dart';
 import 'package:locsy_skeleton/features/profile/screens/profile_screen.dart';
+import 'package:locsy_skeleton/features/demo/screens/scratch_demo_screen.dart';
 
 // ---------------------------------------------------------------
 // Firebase init
 // ---------------------------------------------------------------
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Lock orientation to portrait mode
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+  
   await Firebase.initializeApp(); // uses android/app/google-services.json
   // sanity log: confirm correct Firebase project
   final o = Firebase.app().options;
@@ -80,6 +89,9 @@ class LocsyApp extends StatelessWidget {
         AppRoutes.distribute:  (_) => const DistributeScreen(),
         AppRoutes.redeem:      (_) => const RedeemScreen(),
         AppRoutes.wallet:      (_) => const WalletScreen(),
+        
+        // Demo routes
+        AppRoutes.scratchDemo: (_) => const ScratchDemoScreen(),
       },
 
       onUnknownRoute: (_) =>

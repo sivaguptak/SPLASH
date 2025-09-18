@@ -18,6 +18,9 @@ class ServiceProvider {
   final bool isVerified;
   final String workingHours;
   final String experience;
+  final double distance;
+  final String location;
+  final String phone;
 
   ServiceProvider({
     required this.id,
@@ -37,6 +40,9 @@ class ServiceProvider {
     required this.isVerified,
     required this.workingHours,
     required this.experience,
+    required this.distance,
+    required this.location,
+    required this.phone,
   });
 }
 
@@ -62,6 +68,9 @@ class ServiceProviderService {
         isVerified: true,
         workingHours: '9:00 AM - 6:00 PM',
         experience: '15 years',
+        distance: 0.3,
+        location: 'Chintalapudi',
+        phone: '+91 9876543210',
       ),
       ServiceProvider(
         id: 'lawyer_2',
@@ -81,6 +90,9 @@ class ServiceProviderService {
         isVerified: true,
         workingHours: '10:00 AM - 7:00 PM',
         experience: '12 years',
+        distance: 0.5,
+        location: 'Chintalapudi',
+        phone: '+91 9876543211',
       ),
 
       // Grocery Stores
@@ -102,6 +114,9 @@ class ServiceProviderService {
         isVerified: true,
         workingHours: '6:00 AM - 10:00 PM',
         experience: '8 years',
+        distance: 0.6,
+        location: 'Chintalapudi',
+        phone: '+91 9876543212',
       ),
 
       // Fruits & Vegetables
@@ -123,6 +138,9 @@ class ServiceProviderService {
         isVerified: true,
         workingHours: '5:00 AM - 9:00 PM',
         experience: '10 years',
+        distance: 0.4,
+        location: 'Chintalapudi',
+        phone: '+91 9876543213',
       ),
 
       // Electricians
@@ -144,6 +162,9 @@ class ServiceProviderService {
         isVerified: true,
         workingHours: '8:00 AM - 8:00 PM',
         experience: '18 years',
+        distance: 1.0,
+        location: 'Chintalapudi',
+        phone: '+91 9876543214',
       ),
 
       // Plumbers
@@ -165,6 +186,9 @@ class ServiceProviderService {
         isVerified: true,
         workingHours: '7:00 AM - 7:00 PM',
         experience: '14 years',
+        distance: 0.7,
+        location: 'Chintalapudi',
+        phone: '+91 9876543215',
       ),
 
       // Restaurants
@@ -186,6 +210,9 @@ class ServiceProviderService {
         isVerified: true,
         workingHours: '11:00 AM - 11:00 PM',
         experience: '12 years',
+        distance: 0.5,
+        location: 'Chintalapudi',
+        phone: '+91 9876543216',
       ),
 
       // Schools
@@ -207,6 +234,9 @@ class ServiceProviderService {
         isVerified: true,
         workingHours: '8:00 AM - 4:00 PM',
         experience: '25 years',
+        distance: 0.8,
+        location: 'Chintalapudi',
+        phone: '+91 9876543217',
       ),
     ];
   }
