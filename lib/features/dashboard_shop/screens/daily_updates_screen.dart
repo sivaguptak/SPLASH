@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
-import '../../../data/models/daily_update.dart';
+import '../../../data/models/shop_daily_update.dart';
 import '../../../widgets/lo_buttons.dart';
 
 class DailyUpdatesScreen extends StatefulWidget {
@@ -11,8 +11,8 @@ class DailyUpdatesScreen extends StatefulWidget {
 }
 
 class _DailyUpdatesScreenState extends State<DailyUpdatesScreen> {
-  final List<DailyUpdateModel> _updates = [
-    DailyUpdateModel(
+  final List<ShopDailyUpdate> _updates = [
+    ShopDailyUpdate(
       id: '1',
       shopId: '1',
       title: 'Fresh Sweets Available',
@@ -22,7 +22,7 @@ class _DailyUpdatesScreenState extends State<DailyUpdatesScreen> {
       createdAt: DateTime.now().subtract(const Duration(hours: 2)),
       updatedAt: DateTime.now().subtract(const Duration(hours: 2)),
     ),
-    DailyUpdateModel(
+    ShopDailyUpdate(
       id: '2',
       shopId: '1',
       title: 'Special Offer',
@@ -32,7 +32,7 @@ class _DailyUpdatesScreenState extends State<DailyUpdatesScreen> {
       createdAt: DateTime.now().subtract(const Duration(days: 1)),
       updatedAt: DateTime.now().subtract(const Duration(days: 1)),
     ),
-    DailyUpdateModel(
+    ShopDailyUpdate(
       id: '3',
       shopId: '1',
       title: 'Shop Closed Tomorrow',
@@ -170,7 +170,7 @@ class _DailyUpdatesScreenState extends State<DailyUpdatesScreen> {
     );
   }
 
-  Widget _buildUpdateCard(DailyUpdateModel update) {
+  Widget _buildUpdateCard(ShopDailyUpdate update) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
@@ -342,7 +342,7 @@ class _DailyUpdatesScreenState extends State<DailyUpdatesScreen> {
     );
   }
 
-  List<DailyUpdateModel> _getFilteredUpdates() {
+  List<ShopDailyUpdate> _getFilteredUpdates() {
     switch (_selectedFilter) {
       case 'Active':
         return _updates.where((update) => update.isActive).toList();
@@ -396,7 +396,7 @@ class _DailyUpdatesScreenState extends State<DailyUpdatesScreen> {
     });
   }
 
-  void _editUpdate(DailyUpdateModel update) {
+  void _editUpdate(ShopDailyUpdate update) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -414,7 +414,7 @@ class _DailyUpdatesScreenState extends State<DailyUpdatesScreen> {
     });
   }
 
-  void _toggleUpdateStatus(DailyUpdateModel update) {
+  void _toggleUpdateStatus(ShopDailyUpdate update) {
     setState(() {
       final index = _updates.indexWhere((u) => u.id == update.id);
       if (index != -1) {
@@ -433,7 +433,7 @@ class _DailyUpdatesScreenState extends State<DailyUpdatesScreen> {
     );
   }
 
-  void _duplicateUpdate(DailyUpdateModel update) {
+  void _duplicateUpdate(ShopDailyUpdate update) {
     final duplicatedUpdate = update.copyWith(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       title: '${update.title} (Copy)',
@@ -453,7 +453,7 @@ class _DailyUpdatesScreenState extends State<DailyUpdatesScreen> {
     );
   }
 
-  void _handleMenuAction(String action, DailyUpdateModel update) {
+  void _handleMenuAction(String action, ShopDailyUpdate update) {
     switch (action) {
       case 'edit':
         _editUpdate(update);
@@ -470,7 +470,7 @@ class _DailyUpdatesScreenState extends State<DailyUpdatesScreen> {
     }
   }
 
-  void _deleteUpdate(DailyUpdateModel update) {
+  void _deleteUpdate(ShopDailyUpdate update) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -507,7 +507,7 @@ class _DailyUpdatesScreenState extends State<DailyUpdatesScreen> {
 }
 
 class _AddEditUpdateScreen extends StatefulWidget {
-  final DailyUpdateModel? update;
+  final ShopDailyUpdate? update;
   
   const _AddEditUpdateScreen({this.update});
 
@@ -709,7 +709,7 @@ class _AddEditUpdateScreenState extends State<_AddEditUpdateScreen> {
 
   void _saveUpdate() {
     if (_formKey.currentState!.validate()) {
-      final update = DailyUpdateModel(
+      final update = ShopDailyUpdate(
         id: widget.update?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
         shopId: '1', // TODO: Get from auth
         title: _titleController.text.trim(),

@@ -5,6 +5,7 @@ import '../../../widgets/lo_cards.dart';
 import '../../../widgets/lo_buttons.dart';
 import '../../../widgets/bottom_navigation_widget.dart';
 import '../../../widgets/back_button_handler.dart';
+import '../../../widgets/daily_updates_widget.dart';
 import '../../../app.dart';
 import '../../../core/theme.dart';
 import '../../../data/services/category_service.dart';
@@ -23,7 +24,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   final CategoryService _categoryService = CategoryService();
   String _selectedLocation = 'Chintalapudi';
@@ -36,11 +37,15 @@ class _HomeScreenState extends State<HomeScreen> {
   List<dynamic> _searchResults = [];
   bool _isSearching = false;
   bool _showSearchResults = false;
+  
+  // Tab controller for Daily Updates and Main Content
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
     _searchController.addListener(_onSearchChanged);
+    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
@@ -48,6 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     _searchTimer?.cancel();
+    _tabController.dispose();
     super.dispose();
   }
 
@@ -65,9 +71,11 @@ class _HomeScreenState extends State<HomeScreen> {
             // Search Bar and Location
             _buildSearchSection(),
             
-            // Main Content
+            // Main Content with Tabs
             Expanded(
-              child: _showSearchResults ? _buildSearchResults() : _buildMainContent(),
+              child: _showSearchResults 
+                ? _buildSearchResults() 
+                : _buildTabbedContent(),
             ),
           ],
         ),
@@ -708,6 +716,55 @@ class _HomeScreenState extends State<HomeScreen> {
       _searchResults = allResults;
       _isSearching = false;
     });
+  }
+
+  Widget _buildTabbedContent() {
+    return Column(
+      children: [
+        // Tab Bar
+        Container(
+          color: Colors.white,
+          child: TabBar(
+            controller: _tabController,
+            indicatorColor: LocsyColors.orange,
+            labelColor: LocsyColors.orange,
+            unselectedLabelColor: Colors.grey[600],
+            labelStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+            unselectedLabelStyle: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.normal,
+            ),
+            tabs: const [
+              Tab(
+                icon: Icon(Icons.home, size: 20),
+                text: 'Home',
+              ),
+              Tab(
+                icon: Icon(Icons.newspaper, size: 20),
+                text: 'Daily Updates',
+              ),
+            ],
+          ),
+        ),
+        
+        // Tab Content
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              // Home Tab - Original Content
+              _buildMainContent(),
+              
+              // Daily Updates Tab
+              const DailyUpdatesWidget(),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildMainContent() {

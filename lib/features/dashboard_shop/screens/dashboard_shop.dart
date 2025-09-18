@@ -7,7 +7,7 @@ import '../../../app.dart';
 import '../../../core/theme.dart';
 import '../../../data/models/shop.dart';
 import '../../../data/models/service_product.dart';
-import '../../../data/models/daily_update.dart';
+import '../../../data/models/shop_daily_update.dart';
 import 'shop_profile_screen.dart';
 import 'services_products_screen.dart';
 import 'daily_updates_screen.dart';
@@ -80,8 +80,8 @@ class _DashboardShopScreenState extends State<DashboardShopScreen> {
     ),
   ];
 
-  final List<DailyUpdateModel> _dailyUpdates = [
-    DailyUpdateModel(
+  final List<ShopDailyUpdate> _dailyUpdates = [
+    ShopDailyUpdate(
       id: '1',
       shopId: '1',
       title: 'Fresh Sweets Available',
@@ -91,7 +91,7 @@ class _DashboardShopScreenState extends State<DashboardShopScreen> {
       createdAt: DateTime.now().subtract(const Duration(hours: 2)),
       updatedAt: DateTime.now().subtract(const Duration(hours: 2)),
     ),
-    DailyUpdateModel(
+    ShopDailyUpdate(
       id: '2',
       shopId: '1',
       title: 'Special Offer',
@@ -665,7 +665,7 @@ class _DashboardShopScreenState extends State<DashboardShopScreen> {
     );
   }
 
-  void _editDailyUpdate(DailyUpdateModel update) {
+  void _editDailyUpdate(ShopDailyUpdate update) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -674,7 +674,7 @@ class _DashboardShopScreenState extends State<DashboardShopScreen> {
     );
   }
 
-  void _toggleUpdateStatus(DailyUpdateModel update) {
+  void _toggleUpdateStatus(ShopDailyUpdate update) {
     setState(() {
       // In real app, this would update the database
       // For now, just show a message
