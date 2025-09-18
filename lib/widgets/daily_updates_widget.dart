@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../data/models/daily_update.dart';
 import '../data/services/daily_updates_service.dart';
 import '../core/theme.dart';
+import 'daily_updates_story_viewer.dart';
 
 class DailyUpdatesWidget extends StatefulWidget {
   const DailyUpdatesWidget({Key? key}) : super(key: key);
@@ -29,6 +30,40 @@ class _DailyUpdatesWidgetState extends State<DailyUpdatesWidget> {
         _filteredUpdates = DailyUpdatesService.getUpdatesByCategory(category);
       }
     });
+  }
+
+  void _openStoryMode() {
+    if (_filteredUpdates.isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => DailyUpdatesStoryViewer(
+            updates: _filteredUpdates,
+            initialIndex: 0,
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No updates available for story mode'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
+  }
+
+  void _openSingleStory(DailyUpdate update) {
+    final index = _filteredUpdates.indexOf(update);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DailyUpdatesStoryViewer(
+          updates: _filteredUpdates,
+          initialIndex: index >= 0 ? index : 0,
+        ),
+      ),
+    );
   }
 
   @override
@@ -59,6 +94,47 @@ class _DailyUpdatesWidgetState extends State<DailyUpdatesWidget> {
                 ),
               ),
               const Spacer(),
+              // Story Mode Button
+              GestureDetector(
+                onTap: _openStoryMode,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [LocsyColors.orange, LocsyColors.orange.withOpacity(0.8)],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: LocsyColors.orange.withOpacity(0.3),
+                        spreadRadius: 1,
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.play_circle_fill,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 4),
+                      const Text(
+                        'Story Mode',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
@@ -332,6 +408,41 @@ class _DailyUpdatesWidgetState extends State<DailyUpdatesWidget> {
                     ],
                   ),
                 ],
+
+                // Story Mode Button
+                const SizedBox(height: 12),
+                GestureDetector(
+                  onTap: () => _openSingleStory(update),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [_getCategoryColor(update.category), _getCategoryColor(update.category).withOpacity(0.8)],
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.play_circle_fill,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 6),
+                        const Text(
+                          'View in Story Mode',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
 
                 // Additional Data
                 if (update.additionalData != null) ...[
