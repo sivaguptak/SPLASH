@@ -772,7 +772,7 @@ class _PublicDisplayScreenState extends State<PublicDisplayScreen>
         content: Text('Update link copied to clipboard!'),
         backgroundColor: LocsyColors.success,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
       ),
     );
   }

@@ -611,7 +611,7 @@ class _EnhancedDailyUpdatesScreenState extends State<EnhancedDailyUpdatesScreen>
         content: Text('${update.isActive ? 'Hidden' : 'Shown'} "${update.title}"'),
         backgroundColor: LocsyColors.success,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
       ),
     );
   }
@@ -633,7 +633,7 @@ class _EnhancedDailyUpdatesScreenState extends State<EnhancedDailyUpdatesScreen>
         content: Text('Update duplicated successfully!'),
         backgroundColor: LocsyColors.success,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
       ),
     );
   }
@@ -648,7 +648,7 @@ class _EnhancedDailyUpdatesScreenState extends State<EnhancedDailyUpdatesScreen>
         content: Text('Update link copied to clipboard!'),
         backgroundColor: LocsyColors.success,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
       ),
     );
   }
