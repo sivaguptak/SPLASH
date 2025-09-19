@@ -158,36 +158,38 @@ class _DailyUpdatesWidgetState extends State<DailyUpdatesWidget> {
         Container(
           height: 50,
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: ListView.builder(
+          child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            itemCount: allCategories.length,
-            itemBuilder: (context, index) {
-              final category = allCategories[index];
-              final isSelected = _selectedCategory == category;
-              
-              return Container(
-                margin: const EdgeInsets.only(right: 8),
-                child: FilterChip(
-                  label: Text(
-                    category,
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : LocsyColors.orange,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              children: allCategories.map((category) {
+                final isSelected = _selectedCategory == category;
+                
+                return Container(
+                  margin: const EdgeInsets.only(right: 8),
+                  child: FilterChip(
+                    label: Text(
+                      category,
+                      style: TextStyle(
+                        color: isSelected ? Colors.white : LocsyColors.orange,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
+                    selected: isSelected,
+                    onSelected: (selected) => _filterByCategory(category),
+                    backgroundColor: Colors.white,
+                    selectedColor: LocsyColors.orange,
+                    checkmarkColor: Colors.white,
+                    side: BorderSide(
+                      color: LocsyColors.orange,
+                      width: 1,
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   ),
-                  selected: isSelected,
-                  onSelected: (selected) => _filterByCategory(category),
-                  backgroundColor: Colors.white,
-                  selectedColor: LocsyColors.orange,
-                  checkmarkColor: Colors.white,
-                  side: BorderSide(
-                    color: LocsyColors.orange,
-                    width: 1,
-                  ),
-                ),
-              );
-            },
+                );
+              }).toList(),
+            ),
           ),
         ),
 

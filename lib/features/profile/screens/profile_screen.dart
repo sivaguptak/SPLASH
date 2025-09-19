@@ -162,14 +162,8 @@ class _ProfileScreenState extends State<ProfileScreen>
         // Voice search button - handled by the widget itself
         break;
       case 3:
-        // Navigate to My Activity screen
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('My Activity - Coming Soon!'),
-            backgroundColor: Color(0xFFFF7A00),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        // Navigate to Daily Updates screen
+        Navigator.pushNamed(context, AppRoutes.dailyUpdates);
         break;
       case 4:
         // Already on Profile screen

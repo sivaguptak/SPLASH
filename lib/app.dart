@@ -35,6 +35,7 @@ import 'features/dashboard/screens/dashboard_screen.dart';
 import 'features/home/screens/home_screen.dart';
 import 'features/home/screens/all_categories_screen.dart';
 import 'features/home/screens/enhanced_search_screen.dart';
+import 'features/home/screens/daily_updates_full_screen.dart';
 // END screen imports (home)
 
 // BEGIN screen imports (profile)
@@ -49,6 +50,7 @@ import 'features/dashboard_shop/screens/daily_updates_screen.dart';
 
 // BEGIN screen imports (demo)
 import 'features/demo/screens/scratch_demo_screen.dart';
+import 'features/dashboard_shop/screens/shop_admin_demo_screen.dart';
 // END screen imports (demo)
 
 export 'features/auth/screens/splash_gate.dart';
@@ -81,6 +83,7 @@ class AppRoutes {
   static const allCategories = '/all-categories';
   static const enhancedSearch = '/enhanced-search';
   static const profile     = '/profile';
+  static const dailyUpdates = '/daily-updates';
   
   // Shop dashboard specific routes
   static const shopProfile = '/shop/profile';
@@ -93,6 +96,7 @@ class AppRoutes {
   
   // Demo routes
   static const scratchDemo = '/demo/scratch';
+  static const shopAdminDemo = '/demo/shop-admin';
 }
 
 // ===============================================================
@@ -136,6 +140,9 @@ class LocsyRouter extends StatelessWidget {
             break;
           case AppRoutes.profile:
             page = const ProfileScreen();
+            break;
+          case AppRoutes.dailyUpdates:
+            page = const DailyUpdatesFullScreen();
             break;
 
         // ---------- Existing routes ----------
@@ -193,6 +200,9 @@ class LocsyRouter extends StatelessWidget {
         // ---------- Demo routes ----------
           case AppRoutes.scratchDemo:
             page = const ScratchDemoScreen();
+            break;
+          case AppRoutes.shopAdminDemo:
+            page = const ShopAdminDemoScreen();
             break;
 
         // ---------- Default (Splash) ----------

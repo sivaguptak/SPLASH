@@ -5,7 +5,6 @@ import '../../../widgets/lo_cards.dart';
 import '../../../widgets/lo_buttons.dart';
 import '../../../widgets/bottom_navigation_widget.dart';
 import '../../../widgets/back_button_handler.dart';
-import '../../../widgets/daily_updates_widget.dart';
 import '../../../app.dart';
 import '../../../core/theme.dart';
 import '../../../data/services/category_service.dart';
@@ -24,7 +23,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
   final CategoryService _categoryService = CategoryService();
   String _selectedLocation = 'Chintalapudi';
@@ -38,14 +37,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   bool _isSearching = false;
   bool _showSearchResults = false;
   
-  // Tab controller for Daily Updates and Main Content
-  late TabController _tabController;
+  // Tab controller removed - no longer using tabs
 
   @override
   void initState() {
     super.initState();
     _searchController.addListener(_onSearchChanged);
-    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
@@ -53,7 +50,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     _searchTimer?.cancel();
-    _tabController.dispose();
     super.dispose();
   }
 
@@ -71,11 +67,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             // Search Bar and Location
             _buildSearchSection(),
             
-            // Main Content with Tabs
+            // Main Content
             Expanded(
               child: _showSearchResults 
                 ? _buildSearchResults() 
-                : _buildTabbedContent(),
+                : _buildMainContent(),
             ),
           ],
         ),
@@ -485,11 +481,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             children: [
-              _buildCategoryIcon('KIRANA', 'assets/images/characters/shops.png', Colors.purple),
-              _buildCategoryIcon('Clothes', 'assets/images/characters/services.png', Colors.blue),
-              _buildCategoryIcon('Education', 'assets/images/characters/jobs.png', Colors.green),
-              _buildCategoryIcon('OLX', 'assets/images/characters/resale.png', const Color(0xFFFF7A00)),
-              _buildCategoryIcon('Real Estate', 'assets/images/characters/rentals.png', const Color(0xFFFF7A00)),
+              _buildCategoryIcon('KIRANA', Icons.store, Colors.purple),
+              _buildCategoryIcon('Clothes', Icons.checkroom, Colors.blue),
+              _buildCategoryIcon('Education', Icons.school, Colors.green),
+              _buildCategoryIcon('OLX', Icons.sell, const Color(0xFFFF7A00)),
+              _buildCategoryIcon('Real Estate', Icons.home_work, const Color(0xFFFF7A00)),
             ],
           ),
         ),
@@ -497,7 +493,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildCategoryIcon(String label, String imagePath, Color color) {
+  Widget _buildCategoryIcon(String label, IconData icon, Color color) {
     return Container(
       width: 60,
       margin: const EdgeInsets.only(right: 10),
@@ -514,13 +510,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 width: 1.5,
               ),
             ),
-            child: ClipOval(
-              child: Image.asset(
-                imagePath,
-                width: 32,
-                height: 32,
-                fit: BoxFit.cover,
-              ),
+            child: Icon(
+              icon,
+              color: color,
+              size: 20,
             ),
           ),
           const SizedBox(height: 4),
@@ -718,54 +711,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     });
   }
 
-  Widget _buildTabbedContent() {
-    return Column(
-      children: [
-        // Tab Bar
-        Container(
-          color: Colors.white,
-          child: TabBar(
-            controller: _tabController,
-            indicatorColor: LocsyColors.orange,
-            labelColor: LocsyColors.orange,
-            unselectedLabelColor: Colors.grey[600],
-            labelStyle: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-            unselectedLabelStyle: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.normal,
-            ),
-            tabs: const [
-              Tab(
-                icon: Icon(Icons.home, size: 20),
-                text: 'Home',
-              ),
-              Tab(
-                icon: Icon(Icons.newspaper, size: 20),
-                text: 'Daily Updates',
-              ),
-            ],
-          ),
-        ),
-        
-        // Tab Content
-        Expanded(
-          child: TabBarView(
-            controller: _tabController,
-            children: [
-              // Home Tab - Original Content
-              _buildMainContent(),
-              
-              // Daily Updates Tab
-              const DailyUpdatesWidget(),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildMainContent() {
     return SingleChildScrollView(
@@ -1029,14 +974,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         // Voice search button - handled by the widget itself
         break;
       case 3:
-        // Navigate to My Activity screen
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('My Activity - Coming Soon!'),
-            backgroundColor: Color(0xFFFF7A00),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        // Navigate to Daily Updates screen
+        Navigator.pushNamed(context, AppRoutes.dailyUpdates);
         break;
       case 4:
         Navigator.pushNamedAndRemoveUntil(context, AppRoutes.profile, (route) => false);

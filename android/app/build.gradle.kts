@@ -49,14 +49,14 @@ android {
 
     buildTypes {
         release {
-            // Keep code shrink OFF for now
-            isMinifyEnabled = false
-            // Resource shrink must be OFF when minify is OFF
-            isShrinkResources = false
-            // proguardFiles(
-            //     getDefaultProguardFile("proguard-android-optimize.txt"),
-            //     "proguard-rules.pro"
-            // )
+            // Enable code shrinking for production
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            // Signing configuration will be added separately
         }
         debug {
             // Debug should not shrink either

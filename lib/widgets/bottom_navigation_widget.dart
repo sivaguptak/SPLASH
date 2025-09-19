@@ -330,7 +330,7 @@ class _BottomNavigationWidgetState extends State<BottomNavigationWidget>
               _buildNavItem(Icons.home, 'Home', 0),
               _buildNavItem(Icons.search, 'Explore', 1),
               _buildVoiceSearchButton(),
-              _buildNavItem(Icons.history, 'My Activity', 3),
+              _buildNavItem(Icons.newspaper, 'Daily Updates', 3),
               _buildNavItem(Icons.person, 'Profile', 4),
             ],
           ),

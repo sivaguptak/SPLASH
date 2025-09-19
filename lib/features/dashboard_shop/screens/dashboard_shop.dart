@@ -11,6 +11,8 @@ import '../../../data/models/shop_daily_update.dart';
 import 'shop_profile_screen.dart';
 import 'services_products_screen.dart';
 import 'daily_updates_screen.dart';
+import 'enhanced_daily_updates_screen.dart';
+import 'public_display_screen.dart';
 
 class DashboardShopScreen extends StatefulWidget {
   const DashboardShopScreen({super.key});
@@ -363,88 +365,164 @@ class _DashboardShopScreenState extends State<DashboardShopScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Daily Updates',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              children: [
+                Icon(Icons.campaign, color: LocsyColors.orange, size: 20),
+                const SizedBox(width: 8),
+                const Text(
+                  'Daily Updates & Offers',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
-            TextButton.icon(
-              onPressed: _addDailyUpdate,
-              icon: const Icon(Icons.add, size: 16),
-              label: const Text('Add Update'),
+            Row(
+              children: [
+                TextButton.icon(
+                  onPressed: _viewPublicDisplay,
+                  icon: const Icon(Icons.visibility, size: 16),
+                  label: const Text('Preview'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: LocsyColors.info,
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: _addDailyUpdate,
+                  icon: const Icon(Icons.add, size: 16),
+                  label: const Text('Add Update'),
+                ),
+              ],
             ),
           ],
         ),
         const SizedBox(height: 12),
         ..._dailyUpdates.map((update) => Card(
-          margin: const EdgeInsets.only(bottom: 8),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: _getPriorityColor(update.priority),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        'Priority ${update.priority}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
+          margin: const EdgeInsets.only(bottom: 12),
+          elevation: 4,
+          shadowColor: LocsyColors.orange.withOpacity(0.2),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: InkWell(
+            onTap: () => _editDailyUpdate(update),
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: _getPriorityColor(update.priority),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: _getPriorityColor(update.priority).withOpacity(0.3),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              _getPriorityIcon(update.priority),
+                              size: 12,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Priority ${update.priority}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      _formatTime(update.createdAt),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: update.isActive 
+                              ? LocsyColors.success.withOpacity(0.2)
+                              : LocsyColors.error.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          update.isActive ? 'Active' : 'Inactive',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: update.isActive ? LocsyColors.success : LocsyColors.error,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  update.title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                      const Spacer(),
+                      Text(
+                        _formatTime(update.createdAt),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  update.content,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[700],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    IconButton(
-                      onPressed: () => _editDailyUpdate(update),
-                      icon: const Icon(Icons.edit, size: 16),
+                  const SizedBox(height: 12),
+                  Text(
+                    update.title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
-                    IconButton(
-                      onPressed: () => _toggleUpdateStatus(update),
-                      icon: Icon(
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    update.content,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[700],
+                      height: 1.4,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      _buildActionButton(
+                        Icons.edit,
+                        'Edit',
+                        LocsyColors.info,
+                        () => _editDailyUpdate(update),
+                      ),
+                      const SizedBox(width: 8),
+                      _buildActionButton(
                         update.isActive ? Icons.visibility_off : Icons.visibility,
-                        size: 16,
+                        update.isActive ? 'Hide' : 'Show',
+                        update.isActive ? LocsyColors.warning : LocsyColors.success,
+                        () => _toggleUpdateStatus(update),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                      const SizedBox(width: 8),
+                      if (update.isActive)
+                        _buildActionButton(
+                          Icons.publish,
+                          'Publish',
+                          LocsyColors.orange,
+                          () => _publishUpdate(update),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         )).toList(),
@@ -548,6 +626,12 @@ class _DashboardShopScreenState extends State<DashboardShopScreen> {
               Icons.shopping_cart,
               'Order management',
               () => _showOrders(),
+            ),
+            _buildFeatureCard(
+              'Demo',
+              Icons.play_circle,
+              'View enhanced features',
+              () => _showDemo(),
             ),
           ],
         ),
@@ -660,7 +744,7 @@ class _DashboardShopScreenState extends State<DashboardShopScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const DailyUpdatesScreen(),
+        builder: (context) => const EnhancedDailyUpdatesScreen(),
       ),
     );
   }
@@ -669,7 +753,7 @@ class _DashboardShopScreenState extends State<DashboardShopScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const DailyUpdatesScreen(),
+        builder: (context) => const EnhancedDailyUpdatesScreen(),
       ),
     );
   }
@@ -714,6 +798,167 @@ class _DashboardShopScreenState extends State<DashboardShopScreen> {
 
   void _showOrders() {
     Navigator.pushNamed(context, AppRoutes.shopOrders);
+  }
+
+  void _showDemo() {
+    Navigator.pushNamed(context, AppRoutes.shopAdminDemo);
+  }
+
+  void _viewPublicDisplay() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const PublicDisplayScreen(),
+      ),
+    );
+  }
+
+  void _publishUpdate(ShopDailyUpdate update) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Publish Update'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Publish "${update.title}" to public?'),
+            const SizedBox(height: 16),
+            const Text('This will make the update visible to customers and generate a shareable link.'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _showPublishSuccess(update);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: LocsyColors.orange,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Publish'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPublishSuccess(ShopDailyUpdate update) {
+    final publicLink = 'https://locsy.app/public/shop/1/update/${update.id}';
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.check_circle, color: LocsyColors.success),
+            const SizedBox(width: 8),
+            const Text('Published!'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Your update has been published successfully!'),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: LocsyColors.lightOrange,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: LocsyColors.orange.withOpacity(0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Public Link:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  SelectableText(
+                    publicLink,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: LocsyColors.slate,
+                      fontFamily: 'monospace',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: publicLink));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Link copied to clipboard!'),
+                  backgroundColor: LocsyColors.success,
+                ),
+              );
+            },
+            child: const Text('Copy Link'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _shareViaWhatsApp(update, publicLink);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Share via WhatsApp'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _shareViaWhatsApp(ShopDailyUpdate update, String link) {
+    final message = 'Check out this update from Mahalakshmi Sweets:\n\n${update.title}\n\n${update.content}\n\nView: $link';
+    final whatsappUrl = 'https://wa.me/?text=${Uri.encodeComponent(message)}';
+    
+    launchUrl(Uri.parse(whatsappUrl));
+  }
+
+  Widget _buildActionButton(IconData icon, String tooltip, Color color, VoidCallback onPressed) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: color.withOpacity(0.3)),
+          ),
+          child: Icon(icon, size: 16, color: color),
+        ),
+      ),
+    );
+  }
+
+  IconData _getPriorityIcon(int priority) {
+    switch (priority) {
+      case 1: return Icons.info;
+      case 2: return Icons.star;
+      case 3: return Icons.warning;
+      case 4: return Icons.error;
+      case 5: return Icons.priority_high;
+      default: return Icons.info;
+    }
   }
 
   @override

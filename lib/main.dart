@@ -27,6 +27,7 @@ import 'package:locsy_skeleton/features/auth/screens/auth_choice.dart';
 import 'package:locsy_skeleton/features/auth/screens/phone_otp_flow.dart';
 import 'package:locsy_skeleton/features/home/screens/home_screen.dart';
 import 'package:locsy_skeleton/features/home/screens/all_categories_screen.dart';
+import 'package:locsy_skeleton/features/home/screens/daily_updates_full_screen.dart';
 import 'package:locsy_skeleton/features/profile/screens/profile_screen.dart';
 import 'package:locsy_skeleton/features/demo/screens/scratch_demo_screen.dart';
 
@@ -73,6 +74,7 @@ class LocsyApp extends StatelessWidget {
         AppRoutes.home:       (_) => const HomeScreen(),
         AppRoutes.allCategories: (_) => const AllCategoriesScreen(),
         AppRoutes.profile:    (_) => const ProfileScreen(),
+        AppRoutes.dailyUpdates: (_) => const DailyUpdatesFullScreen(),
 
         // OTP step (reads phone from ModalRoute.arguments inside screen)
         '/auth/otp-verify':   (_) => const PhoneOtpFlow(),
